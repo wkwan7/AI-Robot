@@ -5,9 +5,14 @@ sceneTreePerspectives: 000000ff0000000100000002000000c0000000fe01000000020100000
 maximizedDockId: -1
 centralWidgetVisible: 1
 orthographicViewHeight: 1
-textFiles: 0 "controllers/new_my_controller/new_my_controller.c"
+textFiles: 0 "controllers/FetchGoodBot_controller/FetchGoodBot_controller.c"
+globalOptionalRendering: CameraFrustums
 consoles: Console:All:All
-renderingDevicePerspectives: SuperBot_v3(1):camera_front;1;0.796875;0;0
-renderingDevicePerspectives: SuperBot_v3(1):camera_top;1;0.703125;0;0.247707
+renderingDevicePerspectives: LoadGoodBot:camera_front;1;1;0;0
+renderingDevicePerspectives: LoadGoodBot:camera_top;1;1;0;0
+renderingDevicePerspectives: SuperBot_v3(1):camera_front;1;0.625;0;0
+renderingDevicePerspectives: SuperBot_v3(1):camera_top;1;0.636719;0;0.192661
+renderingDevicePerspectives: SuperBot_v3(2):camera_front;1;0.65625;0.665354;0.194954
+renderingDevicePerspectives: SuperBot_v3(2):camera_top;1;0.65625;0.665354;0
 renderingDevicePerspectives: SuperBot_v3:camera_front;1;1;0;0
 renderingDevicePerspectives: SuperBot_v3:camera_top;1;1;0;0.163073

@@ -491,32 +491,6 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
 //寻找空货架 给四个定点GPS 摄像头看四面墙 返回货架位置和一个商品种类
 bool Find_Empty(WbDeviceTag camera)
 {
-  //给一个固定的巡逻轨迹 前部摄像头寻找指定商品 靠近直到顶部摄像头能捕捉
-  bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id)
-  {
-    int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
-    const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
-    double grasp_dis_threshold = -0.5;
-    for (int i = 0; i < number_of_objects; ++i)
-    {
-      // printf("goodname:%s 距离 %s 有 %.3f m \n", good_name, objects[i].model, -objects[i].position[2]);
-      if (strcmp(objects[i].model, good_name) == 0)
-      {
-        if (objects[i].position[2] > 1.3 * grasp_dis_threshold)
-        {
-          //  //距离近、左右位置对、且是侧面
-          if (objects[i].position[2] > grasp_dis_threshold && fabs(objects[i].position[0]) < 0.1 && objects[i].size[0] <= 0.15)
-          {
-            // printf("找到了离我%.3f m 的 %s\n", -objects[i].position[2], good_name);
-            *item_grasped_id = objects[i].id;
-            return true;
-          }
-        }
-        printf("Too far away\n");
-      }
-    }
-    return false;
-  }
   int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
   printf("识别到 %d 个物体.\n", number_of_objects);
   const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
