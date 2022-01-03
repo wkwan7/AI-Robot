@@ -50,7 +50,7 @@ int TargetGood;               //当前关注的货物种类
 int Item_Grasped_Id = -1;
 double load_target_posture[3];//上货点
 
-char *GoodsList[] = {"cereal box red", "cereal box", "cereal box red", "jam jar", "honey jar", "water bottle", "biscuit box", "red can", "beer bottle"};
+char *GoodsList[] = {"can", "cereal box", "cereal box red", "jam jar", "honey jar", "water bottle", "biscuit box", "red can", "beer bottle"};
 //抓取时前探的距离，绝对值越小，前探越前
 double Grasp_dis_set[] = {-0.16,  -0.18,         -0.18,             -0.16,       -0.16,       -0.16,         -0.16,    -0.16,       -0.16} ;
 //寻找货物定点 右->...-> 上->...->左->...->下

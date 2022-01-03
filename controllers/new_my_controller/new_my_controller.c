@@ -43,14 +43,14 @@ double compass_angle;         //罗盘角度
 double initial_posture[3];    //起点位姿,0为x,1为z,2为角度，每段轨迹只设置一次
 double tmp_target_posture[3]; //临时目标位姿，需要不断计算
 double fin_target_posture[3]; //最终目标位姿
-double recent_posture[3];     //巡回的起始点
+double *recent_posture;       //巡回的起始点
 
 int TargetIndex = 0; //当前关注的货架空位
 int TargetGood;      //当前关注的货物种类
 int Item_Grasped_Id = -1;
 double load_target_posture[3]; //上货点
 
-char *GoodsList[] = {"cereal box red", "cereal box", "cereal box red", "jam jar", "honey jar", "water bottle", "biscuit box", "red can", "beer bottle"};
+char *GoodsList[] = {"can", "cereal box", "cereal box red", "jam jar", "honey jar", "water bottle", "biscuit box", "red can", "beer bottle"};
 //抓取时前探的距离，绝对值越小，前探越前
 double Grasp_dis_set[] = {-0.16, -0.18, -0.18, -0.16, -0.16, -0.16, -0.16, -0.16, -0.16};
 //寻找货物定点 右->...-> 上->...->左->...->下
@@ -72,13 +72,13 @@ double fixed_posture_travelaround[12][3] =
         {1.05, 1.05, PI * 2}       //右下 转
 };
 //识别空货架定点 右->上->左->下
-int CurrentShelf = 0; //当前货架编号 起点出发 逆时针
+int CurrentShelf = 1; //当前货架编号 起点出发 逆时针
 double fixed_posture_findempty[4][3] =
     {
-        {0.8, -2, 0},  // 左上
-        {-0.8, -2, 0}, // 左下
-        {-0.8, 2, 0},  // 右下
-        {0.8, 2, 0},   // 右上
+        {0.8, -2, PI},  // 左上
+        {-2.2, -2, PI}, // 左下
+        {-2.2, 2, PI},  // 右下
+        {0.8, 2, PI},   // 右上
 
         // {1.05, 0.00, 0},         //右
         // {0.00, -1.05, PI / 2},   //上
@@ -88,8 +88,8 @@ double fixed_posture_findempty[4][3] =
 double fixed_posture_loadItem[4][3] =
     {
         {0.8, -2, PI},  // 左上
-        {-0.8, -2, PI}, // 左下
-        {-0.8, 2, PI},  // 右下
+        {-2.2, -2, PI}, // 左下
+        {-2.2, 2, PI},  // 右下
         {0.8, 2, PI},   // 右上
                         // {1.05, 0.00, PI},          //右
                         // {0.00, -1.05, 3 * PI / 2}, //上
@@ -106,16 +106,7 @@ enum RobotState
   SearchItem,
   GrabItem,
   BackMoving,
-  LoadItem,
-  TurnBack,
-  Init_Pose,
-  Recognize_Empty,
-  Arround_Moving,
-  Grab_Item,
-  Back_Moving,
-  TurnBack_To_LoadItem,
-  Item_Loading,
-  RunTo_NextShelf
+  LoadItem
 };
 
 double width = 0.0;  //爪子0~0.1
@@ -185,10 +176,10 @@ void init_all()
   wb_camera_recognition_enable(camera[1], TIME_STEP);
 
   // GPS初始化
-  gps = wb_robot_get_device("gps_copy");
+  gps = wb_robot_get_device("gps");
   wb_gps_enable(gps, TIME_STEP);
   // Compass初始化
-  compass = wb_robot_get_device("compass_copy");
+  compass = wb_robot_get_device("compass");
   wb_compass_enable(compass, TIME_STEP);
   //底盘全方位移动初始化
   base_goto_init(TIME_STEP);
@@ -199,7 +190,8 @@ void init_all()
   set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
   //设置第一个定点位姿
   set_posture(fin_target_posture, fixed_posture_findempty[CurrentShelf][0], fixed_posture_findempty[CurrentShelf][1], fixed_posture_findempty[CurrentShelf][2]);
-  set_posture(recent_posture, fin_target_posture[0], fin_target_posture[1], fin_target_posture[2]);
+  recent_posture = fixed_posture_findempty[CurrentShelf];
+  // set_posture(recent_posture, fin_target_posture[0], fin_target_posture[1], fin_target_posture[2]);
   //计算下一个临时目标;
   caculate_tmp_target(tmp_target_posture, fin_target_posture);
   //设置底盘运动目标
@@ -225,6 +217,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   //归位到recent_poseture，然后开始逆时针巡回
   case MovingAround:
   {
+    // set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
     set_posture(fin_target_posture, recent_posture[0], recent_posture[1], recent_posture[2]);
     if (Moveto_CertainPoint(fin_target_posture, 0.01))
     {
@@ -236,7 +229,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   case GotoFetchPlace:
   {
     set_posture(fin_target_posture, -1, 0, PI / 2);
-    if (Moveto_CertainPoint(fin_target_posture, 0.01))
+    if (Moveto_CertainPoint(fin_target_posture, 0.05))
     {
       *main_state = SearchItem;
       printf("main_state changes from GotoFetchPlace to SearchItem!\n");
@@ -260,7 +253,9 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
       // Travel_Point_Index += 1;
       // Travel_Point_Index %= 12;
       set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-      set_posture(fin_target_posture, fixed_posture_findempty[CurrentShelf][0], fixed_posture_findempty[CurrentShelf][1], fixed_posture_findempty[CurrentShelf][2]);
+      recent_posture = fixed_posture_findempty[CurrentShelf];
+      printf("new posture x:%lf z:%lf angle:%lf\n", recent_posture[0], recent_posture[1], recent_posture[2]);
+      // set_posture(fin_target_posture, fixed_posture_findempty[CurrentShelf][0], fixed_posture_findempty[CurrentShelf][1], fixed_posture_findempty[CurrentShelf][2]);
       *main_state = MovingAround; //前往下一个货架
       printf("main_state changes from RecognizeEmpty to Moving Around!\n");
     }
@@ -288,110 +283,29 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
     if (Aim_and_Grasp(grasp_state, camera[1], Item_Grasped_Id))
     {
       printf("抓到回去啦!\n");
+      get_gps_values(gps_values);
+      get_compass_angle(&compass_angle);
+      double load_x = 0;
+      double load_z = 0.3; //向后走两步
+      load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
+      load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
+      load_target_posture[2] = compass_angle;
+      while (!Moveto_CertainPoint(load_target_posture, 0.01))
+      {
+        step(); //时序乱了
+      }
       *main_state = BackMoving;
       printf("main_state changes from GrabItem to BackMoving!\n");
       *grasp_state = 0;
     }
     break;
   }
-    // case BackMoving:
-    // {
-    //   //处理往哪边近绕圈的问题
-    //   if (Moveto_CertainPoint(fin_target_posture, 0.05))
-    //   {
-    //     if (fin_target_posture[0] == fixed_posture_findempty[CurrentShelf][0] && fin_target_posture[1] == fixed_posture_findempty[CurrentShelf][1])
-    //     {
-    //       *main_state = TurnBack;
-    //       printf("main_state changes from Back_Moving to TurnBack_To_LoadItem!\n");
-    //       set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-    //       //设置下一目标点为反向180度
-    //       set_posture(fin_target_posture, fixed_posture_loadItem[CurrentShelf][0], fixed_posture_loadItem[CurrentShelf][1], fixed_posture_loadItem[CurrentShelf][2]);
-    //       printf("到上货的地方了！\n");
-    //       travel_points_sum = 0;
-    //     }
-    //     else
-    //     {
-    //       set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-    //       set_posture(fin_target_posture, recent_posture[0], recent_posture[1], recent_posture[2]);
-    //     }
-    //   }
-    //   break;
-    // }
-    //   //转身准备上货动作
-    // case TurnBack:
-    // {
-    //   // printf("initial target： %.3f  %.3f  %.3f\n", initial_posture[0], initial_posture[1], initial_posture[2]);
-    //   // printf("tmp target： %.3f  %.3f  %.3f\n", tmp_target_posture[0], tmp_target_posture[1], tmp_target_posture[2]);
-    //   // printf("final target： %.3f  %.3f  %.3f\n\n", fin_target_posture[0], fin_target_posture[1], fin_target_posture[2]);
-    //   if (Moveto_CertainPoint(fin_target_posture, 0.03))
-    //   {
-    //     *main_state = LoadItem;
-    //     printf("main_state changes from TurnBack to LoadItem!\n");
-    //     printf("该上货了！\n");
-    //     printf("GoodsonShelf[%d][%d] need %s\n", CurrentShelf, TargetIndex, index2name(TargetGood));
 
-    //     //计算一次和上货点的相对位移
-    //     get_gps_values(gps_values);
-    //     get_compass_angle(&compass_angle);
-    //     double load_x = (TargetIndex % 8) * 0.24 - 0.84;
-    //     double load_z = -0.16; //两步走
-    //     load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
-    //     load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
-    //     load_target_posture[2] = compass_angle;
-    //   }
-    //   break;
-    // }
-    // //上货
-    // case LoadItem:
-    // {
-    //   get_gps_values(gps_values);
-    //   // printf("GPS device: %.3f %.3f\n", gps_values[0], gps_values[1]);
-    //   if (Moveto_CertainPoint(load_target_posture, 0.001))
-    //   {
-    //     double load_z_add = -0.4; //最后前进一些
-    //     load_target_posture[0] = gps_values[0] + cos(compass_angle) * load_z_add;
-    //     load_target_posture[1] = gps_values[1] - sin(compass_angle) * load_z_add;
-    //     load_target_posture[2] = compass_angle;
-    //     printf("x: %lf z: %lf angle: %lf\n", load_target_posture[0], load_target_posture[1], load_target_posture[2]);
-    //     while (!Moveto_CertainPoint(load_target_posture, 0.01))
-    //     {
-    //       step(); //时序乱了
-    //     }
-    //     base_reset();
-    //     printf("小心上货！\n");
-    //     wb_robot_step(50000 / TIME_STEP);
-    //     moveFingers(width += 0.005);
-    //     wb_robot_step(50000 / TIME_STEP);
-
-    //     load_target_posture[0] = gps_values[0] - cos(compass_angle) * load_z_add;
-    //     load_target_posture[1] = gps_values[1] + sin(compass_angle) * load_z_add;
-    //     load_target_posture[2] = compass_angle;
-    //     while (!Moveto_CertainPoint(load_target_posture, 0.01))
-    //     {
-    //       step(); //时序乱了
-    //     }
-    //     load_target_posture[2] = (compass_angle > PI) ? compass_angle - PI : compass_angle + PI; //原地自转回来
-
-    //     while (!Moveto_CertainPoint(load_target_posture, 0.01))
-    //     {
-    //       step(); //时序乱了
-    //     }
-    //     moveFingers(width = 0.0);
-    //     lift(height = 0.020);
-    //     *main_state = Init_Pose;
-    //     printf("main_state changes from Item_Loading to Init_Pose!\n");
-    //     set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-    //     set_posture(fin_target_posture, fixed_posture_findempty[CurrentShelf][0], fixed_posture_findempty[CurrentShelf][1], fixed_posture_findempty[CurrentShelf][2]);
-    //   }
-    //   break;
-    // }
   case BackMoving:
   {
-    //处理往哪边近绕圈的问题
     if (Moveto_CertainPoint(fin_target_posture, 0.05))
     {
-      double diff = 0.05;
-      if (abs(fin_target_posture[0] - fixed_posture_findempty[CurrentShelf][0]) < diff && abs(fin_target_posture[1] - fixed_posture_findempty[CurrentShelf][1]) < diff)
+      if (fin_target_posture[0] == fixed_posture_findempty[CurrentShelf][0] && fin_target_posture[1] == fixed_posture_findempty[CurrentShelf][1])
       {
         *main_state = LoadItem;
         printf("main_state changes from BackMoving to LoadItem!\n");
@@ -400,7 +314,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
         //计算一次和上货点的相对位移
         get_gps_values(gps_values);
         get_compass_angle(&compass_angle);
-        double load_x = (TargetIndex % 8) * 0.24 - 0.84;
+        double load_x = (TargetIndex % 8) * 0.24 - 0.85;
         double load_z = -0.16; //两步走
         load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
         load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
@@ -419,13 +333,19 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   case LoadItem:
   {
     get_gps_values(gps_values);
+    get_compass_angle(&compass_angle);
     // printf("GPS device: %.3f %.3f\n", gps_values[0], gps_values[1]);
-    if (Moveto_CertainPoint(load_target_posture, 0.05))
+    if (Moveto_CertainPoint(load_target_posture, 0.001))
     {
-      double load_z_add = -0.4; //最后前进一些
-      load_target_posture[0] = gps_values[0] + cos(compass_angle) * load_z_add;
-      load_target_posture[1] = gps_values[1] - sin(compass_angle) * load_z_add;
-      load_target_posture[2] = compass_angle;
+      // printf("aim pos: x: %lf z: %lf angle: %lf\n", load_target_posture[0], load_target_posture[1], load_target_posture[2]);
+      // printf("current pos: x: %lf z: %lf angle: %lf\n", gps_values[0], gps_values[1], compass_angle);
+      double load_x_add = 0.5; //最后前进一些
+      load_target_posture[0] = gps_values[0] + load_x_add;
+      load_target_posture[1] = gps_values[1];
+      load_target_posture[2] = PI;
+      // load_target_posture[0] = gps_values[0] + cos(compass_angle) * load_z_add;
+      // load_target_posture[1] = gps_values[1] - sin(compass_angle) * load_z_add;
+      // load_target_posture[2] = compass_angle;
       while (!Moveto_CertainPoint(load_target_posture, 0.01))
       {
         step(); //时序乱了
@@ -436,14 +356,14 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
       moveFingers(width += 0.005);
       wb_robot_step(50000 / TIME_STEP);
 
-      load_target_posture[0] = gps_values[0] - cos(compass_angle) * load_z_add;
-      load_target_posture[1] = gps_values[1] + sin(compass_angle) * load_z_add;
-      load_target_posture[2] = compass_angle;
+      load_target_posture[0] = gps_values[0] - load_x_add;
+      load_target_posture[1] = gps_values[1];
+      load_target_posture[2] = PI;
       while (!Moveto_CertainPoint(load_target_posture, 0.01))
       {
         step(); //时序乱了
       }
-      load_target_posture[2] = (compass_angle > PI) ? compass_angle - PI : compass_angle + PI; //原地自转回来
+      // load_target_posture[2] = (compass_angle > PI) ? compass_angle - PI : compass_angle + PI; //原地自转回来
 
       while (!Moveto_CertainPoint(load_target_posture, 0.01))
       {
@@ -459,200 +379,6 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
     break;
   }
 
-  case Init_Pose:
-  {
-    // CurrentShelf = 0;
-    if (Moveto_CertainPoint(fin_target_posture, 0.01))
-    {
-      *main_state = Recognize_Empty;
-      printf("main_state changes from Init_Pose to Recognize_Empty!\n");
-    }
-    break;
-  }
-  //识别空货架
-  case Recognize_Empty:
-  {
-    if (Find_Empty(camera[0])) //货架上有空位
-    {
-      *main_state = Arround_Moving;
-      printf("main_state changes from Recognize_Empty to Arround_Moving!\n");
-      set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-      set_posture(fin_target_posture, fixed_posture_travelaround[Travel_Point_Index][0], fixed_posture_travelaround[Travel_Point_Index][1], fixed_posture_travelaround[Travel_Point_Index][2]);
-    }
-    else //货架上无空位
-    {
-      printf("这个货架%d不用补货啦~\n", CurrentShelf);
-      CurrentShelf += 1; //换到下一货架,
-      CurrentShelf %= 4;
-      Travel_Point_Index += 1;
-      Travel_Point_Index %= 12;
-      set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-      set_posture(fin_target_posture, fixed_posture_travelaround[Travel_Point_Index][0], fixed_posture_travelaround[Travel_Point_Index][1], fixed_posture_travelaround[Travel_Point_Index][2]);
-      *main_state = RunTo_NextShelf; //前往下一个货架
-      printf("main_state changes from Recognize_Empty to RunTo_NextShelf!\n");
-    }
-    break;
-  }
-  //做环绕运动
-  case Arround_Moving:
-  {
-    //这里写识别待抓取物体 比如正好面对时物品
-    if (Find_Goods(camera[1], index2name(TargetGood), &Item_Grasped_Id))
-    {
-      *main_state = Grab_Item;
-      printf("main_state changes from Arround_Moving to Grab_Item!\n");
-      set_posture(fin_target_posture, gps_values[0], gps_values[1], compass_angle);
-    }
-    else
-    {
-      if (Moveto_CertainPoint(fin_target_posture, 0.05))
-      {
-        travel_points_sum++;
-        printf("GoodsonShelf[%d][%d] need %s\n", CurrentShelf, TargetIndex, index2name(TargetGood));
-        set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-        Travel_Point_Index += 1;
-        Travel_Point_Index %= 12;
-        set_posture(fin_target_posture, fixed_posture_travelaround[Travel_Point_Index][0], fixed_posture_travelaround[Travel_Point_Index][1], fixed_posture_travelaround[Travel_Point_Index][2]);
-      }
-    }
-    break;
-  }
-  //抓物品
-  case Grab_Item:
-  {
-    if (Aim_and_Grasp(grasp_state, camera[1], Item_Grasped_Id))
-    {
-      printf("抓到回去啦!\n");
-      *main_state = Back_Moving;
-      printf("main_state changes from Grab_Item to Back_Moving!\n");
-      *grasp_state = 0;
-    }
-    break;
-  }
-  //取货回程
-  case Back_Moving:
-  {
-    //处理往哪边近绕圈的问题
-    if (Moveto_CertainPoint(fin_target_posture, 0.05))
-    {
-      if (fin_target_posture[0] == fixed_posture_findempty[CurrentShelf][0] && fin_target_posture[1] == fixed_posture_findempty[CurrentShelf][1])
-      {
-        *main_state = TurnBack_To_LoadItem;
-        printf("main_state changes from Back_Moving to TurnBack_To_LoadItem!\n");
-        set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-        //设置下一目标点为反向180度
-        set_posture(fin_target_posture, fixed_posture_loadItem[CurrentShelf][0], fixed_posture_loadItem[CurrentShelf][1], fixed_posture_loadItem[CurrentShelf][2]);
-        printf("到上货的地方了！\n");
-        travel_points_sum = 0;
-      }
-      else
-      {
-        set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-        if (travel_points_sum >= 6)
-          Travel_Point_Index += 1; //顺时针转
-        else
-        {
-          if (Travel_Point_Index == 0)
-            Travel_Point_Index = 12;
-          Travel_Point_Index -= 1; //逆时针转
-        }
-        Travel_Point_Index %= 12;
-        Travel_Point_Index = max(0, Travel_Point_Index);
-        set_posture(fin_target_posture, fixed_posture_travelaround[Travel_Point_Index][0], fixed_posture_travelaround[Travel_Point_Index][1], fixed_posture_travelaround[Travel_Point_Index][2]);
-      }
-    }
-    break;
-  }
-  //转身准备上货动作
-  case TurnBack_To_LoadItem:
-  {
-    // printf("initial target： %.3f  %.3f  %.3f\n", initial_posture[0], initial_posture[1], initial_posture[2]);
-    // printf("tmp target： %.3f  %.3f  %.3f\n", tmp_target_posture[0], tmp_target_posture[1], tmp_target_posture[2]);
-    // printf("final target： %.3f  %.3f  %.3f\n\n", fin_target_posture[0], fin_target_posture[1], fin_target_posture[2]);
-    if (Moveto_CertainPoint(fin_target_posture, 0.03))
-    {
-      *main_state = Item_Loading;
-      printf("main_state changes from TurnBack_To_LoadItem to Item_Loading!\n");
-      printf("该上货了！\n");
-      printf("GoodsonShelf[%d][%d] need %s\n", CurrentShelf, TargetIndex, index2name(TargetGood));
-
-      //计算一次和上货点的相对位移
-      get_gps_values(gps_values);
-      get_compass_angle(&compass_angle);
-      double load_x = (TargetIndex % 8) * 0.24 - 0.84;
-      double load_z = -0.16; //两步走
-      load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
-      load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
-      load_target_posture[2] = compass_angle;
-    }
-    break;
-  }
-  //上货
-  case Item_Loading:
-  {
-    get_gps_values(gps_values);
-    // printf("GPS device: %.3f %.3f\n", gps_values[0], gps_values[1]);
-    if (Moveto_CertainPoint(load_target_posture, 0.001))
-    {
-      double load_z_add = -0.24; //最后前进一些
-      load_target_posture[0] = gps_values[0] + cos(compass_angle) * load_z_add;
-      load_target_posture[1] = gps_values[1] - sin(compass_angle) * load_z_add;
-      load_target_posture[2] = compass_angle;
-      while (!Moveto_CertainPoint(load_target_posture, 0.01))
-      {
-        step(); //时序乱了
-      }
-      base_reset();
-      printf("小心上货！\n");
-      wb_robot_step(50000 / TIME_STEP);
-      moveFingers(width += 0.005);
-      wb_robot_step(50000 / TIME_STEP);
-
-      load_target_posture[0] = gps_values[0] - cos(compass_angle) * load_z_add;
-      load_target_posture[1] = gps_values[1] + sin(compass_angle) * load_z_add;
-      load_target_posture[2] = compass_angle;
-      while (!Moveto_CertainPoint(load_target_posture, 0.01))
-      {
-        step(); //时序乱了
-      }
-      load_target_posture[2] = (compass_angle > PI) ? compass_angle - PI : compass_angle + PI; //原地自转回来
-
-      while (!Moveto_CertainPoint(load_target_posture, 0.01))
-      {
-        step(); //时序乱了
-      }
-      moveFingers(width = 0.0);
-      lift(height = 0.020);
-      *main_state = Init_Pose;
-      printf("main_state changes from Item_Loading to Init_Pose!\n");
-      set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-      set_posture(fin_target_posture, fixed_posture_findempty[CurrentShelf][0], fixed_posture_findempty[CurrentShelf][1], fixed_posture_findempty[CurrentShelf][2]);
-    }
-    break;
-  }
-  case RunTo_NextShelf:
-  {
-    if (Moveto_CertainPoint(fin_target_posture, 0.05))
-    {
-      //到达下一个货架
-      if (fin_target_posture[0] == fixed_posture_findempty[CurrentShelf][0] && fin_target_posture[1] == fixed_posture_findempty[CurrentShelf][1])
-      {
-        printf("到下一个货架%d了！\n", CurrentShelf);
-        *main_state = Recognize_Empty;
-        printf("main_state changes from RunTo_NextShelf to Recognize_Empty!\n");
-        printf("initial target： %.3f  %.3f  %.3f\n", initial_posture[0], initial_posture[1], initial_posture[2]);
-        printf("tmp target： %.3f  %.3f  %.3f\n", tmp_target_posture[0], tmp_target_posture[1], tmp_target_posture[2]);
-        printf("final target： %.3f  %.3f  %.3f\n\n", fin_target_posture[0], fin_target_posture[1], fin_target_posture[2]);
-      }
-      else
-      {
-        set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-        Travel_Point_Index += 1;
-        Travel_Point_Index %= 12;
-        set_posture(fin_target_posture, fixed_posture_travelaround[Travel_Point_Index][0], fixed_posture_travelaround[Travel_Point_Index][1], fixed_posture_travelaround[Travel_Point_Index][2]);
-      }
-    }
-  }
   // ERROR
   default:
   {
@@ -850,9 +576,9 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
               lift(height = 0.30);
             else if (TargetIndex < 8)
               lift(height = 0.05);
-            else if (CurrentShelf <= 1) //矮柜0.23
+            else if (CurrentShelf > 1) //矮柜0.23
               lift(height = 0.23);
-            else if (CurrentShelf > 1) //高柜0.43
+            else if (CurrentShelf <= 1) //高柜0.43
               lift(height = 0.43);
             printf("举起了！height = %.3f\n", height);
             wb_robot_step(10000 / TIME_STEP);
@@ -872,6 +598,32 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
 //寻找空货架 给四个定点GPS 摄像头看四面墙 返回货架位置和一个商品种类
 bool Find_Empty(WbDeviceTag camera)
 {
+  //给一个固定的巡逻轨迹 前部摄像头寻找指定商品 靠近直到顶部摄像头能捕捉
+  bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id)
+  {
+    int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
+    const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
+    double grasp_dis_threshold = -0.5;
+    for (int i = 0; i < number_of_objects; ++i)
+    {
+      // printf("goodname:%s 距离 %s 有 %.3f m \n", good_name, objects[i].model, -objects[i].position[2]);
+      if (strcmp(objects[i].model, good_name) == 0)
+      {
+        if (objects[i].position[2] > 1.3 * grasp_dis_threshold)
+        {
+          //  //距离近、左右位置对、且是侧面
+          if (objects[i].position[2] > grasp_dis_threshold && fabs(objects[i].position[0]) < 0.1 && objects[i].size[0] <= 0.15)
+          {
+            // printf("找到了离我%.3f m 的 %s\n", -objects[i].position[2], good_name);
+            *item_grasped_id = objects[i].id;
+            return true;
+          }
+        }
+        printf("Too far away\n");
+      }
+    }
+    return false;
+  }
   int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
   printf("识别到 %d 个物体.\n", number_of_objects);
   const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
@@ -895,7 +647,8 @@ bool Find_Empty(WbDeviceTag camera)
     // for (int j = 0; j < objects[i].number_of_colors; ++j)
     //   printf("颜色 %d/%d: %lf %lf %lf\n", j + 1, objects[i].number_of_colors, objects[i].colors[3 * j],
     //           objects[i].colors[3 * j + 1], objects[i].colors[3 * j + 2]);
-
+    if (objects[i].position[2] < -3)
+      continue;
     int Shelfx = max(0, floor((objects[i].position[0] + 0.84) * 4.17 + 0.5)); //左右 平均间隔0.24（架子宽度0.25）右移后对应一个系数 四舍五入
     int Shelfy = (objects[i].position[1] < -0.2) ? 0 : 1;                     //上下层 -0.20  为上下分界
 
@@ -907,7 +660,7 @@ bool Find_Empty(WbDeviceTag camera)
   int Empty_Flag = 0;
 
   for (int j = 0; j < 16; j++)
-    printf("GoodsonShelf[%d][%d] = %d\n", CurrentShelf, j, GoodsonShelf[CurrentShelf][j]);
+    printf("GoodsonShelf[%d][%d] = %s\n", CurrentShelf, j, index2name(GoodsonShelf[CurrentShelf][j]));
   for (int j = 0; j < 16; j++)
   {
     // if (strlen(GoodsonShelf[CurrentShelf][j]) == 0) // 这种判断可能会crash
@@ -960,17 +713,20 @@ bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id)
   double grasp_dis_threshold = -0.5;
   for (int i = 0; i < number_of_objects; ++i)
   {
+    // printf("goodname:%s 距离 %s 有 %.3f m \n", good_name, objects[i].model, -objects[i].position[2]);
     if (strcmp(objects[i].model, good_name) == 0)
     {
       if (objects[i].position[2] > 1.3 * grasp_dis_threshold)
-        // printf("距离 %s 有 %.3f m \n", good_name, -objects[i].position[2]);
-        //距离近、左右位置对、且是侧面
+      {
+        //  //距离近、左右位置对、且是侧面
         if (objects[i].position[2] > grasp_dis_threshold && fabs(objects[i].position[0]) < 0.1 && objects[i].size[0] <= 0.15)
         {
-          printf("找到了离我%.3f m 的 %s\n", -objects[i].position[2], good_name);
+          // printf("找到了离我%.3f m 的 %s\n", -objects[i].position[2], good_name);
           *item_grasped_id = objects[i].id;
           return true;
         }
+      }
+      printf("Too far away\n");
     }
   }
   return false;
