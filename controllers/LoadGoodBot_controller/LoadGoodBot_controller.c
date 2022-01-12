@@ -154,7 +154,7 @@ void init_all()
   // 机器人初始化
   wb_robot_init();
   base_init();
-  passive_wait(2.0);
+  passive_wait(0.0);
 
   camera[0] = wb_robot_get_device("camera_top"); //相机初始化
   camera[1] = wb_robot_get_device("camera_front");

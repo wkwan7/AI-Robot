@@ -126,7 +126,7 @@ bool targetpos_reached(double target_posture[], double pos_threshold);
 int name2index(char *name);
 char *index2name(int index);
 
-bool Find_Empty(WbDeviceTag camera);
+bool Find_Full(WbDeviceTag camera, char *good_name, int *item_grasped_id);
 bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id);
 bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID);
 bool Moveto_CertainPoint(double fin_posture[], double reach_precision);
@@ -162,7 +162,7 @@ void init_all()
   // 机器人初始化
   wb_robot_init();
   base_init();
-  passive_wait(2.0);
+  passive_wait(0.0);
 
   camera[0] = wb_robot_get_device("camera_top"); //相机初始化
   camera[1] = wb_robot_get_device("camera_front");
@@ -212,9 +212,10 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   {
   case WaitIns:
   {
-    set_posture(fin_target_posture, -1, 0, PI / 2);
-    if (Moveto_CertainPoint(fin_target_posture, 0.05))
-    {}
+    set_posture(fin_target_posture, -2.5, 2.5, PI);
+    if (Moveto_CertainPoint(fin_target_posture, 0.1))
+    {
+    }
     break;
   }
 
@@ -234,19 +235,26 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
     set_posture(fin_target_posture, -1, 0, PI / 2);
     if (Moveto_CertainPoint(fin_target_posture, 0.05))
     {
-      *main_state = SearchItem;
+      *main_state = DropItem;
       printf("main_state changes from GotoDropPlace to DropItem!\n");
     }
     break;
   }
   case RecognizeFull:
   {
-    if (Find_Full(camera[0])) //货架上有空位
+    if (Find_Full(camera[0], index2name(TargetGood), &Item_Grasped_Id)) //货架上有空位
     {
       set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-      set_posture(fin_target_posture, -1, 0, PI / 2);
-      *main_state = GotoDropPlace;
-      printf("main_state changes from RecognizeFull to GotoDropPlace!\n");
+      get_gps_values(gps_values);
+      get_compass_angle(&compass_angle);
+      double load_x = (TargetIndex % 8) * 0.24 - 0.85;
+      double load_z = -0.16; //两步走
+      load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
+      load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
+      load_target_posture[2] = compass_angle;
+      *main_state = GrabItem;
+      printf("main_state changes from RecognizeFull to GrabItem!\n");
+      printf("Goto x:%lf z:%lf\n", load_target_posture[0], load_target_posture[1]);
     }
     else //货架上无空位
     {
@@ -257,57 +265,32 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   }
   case GrabItem:
   {
-    if (Aim_and_Grasp(grasp_state, camera[1], Item_Grasped_Id))
+    if (Moveto_CertainPoint(fin_target_posture, 0.01))
     {
-      printf("抓到回去啦!\n");
-      get_gps_values(gps_values);
-      get_compass_angle(&compass_angle);
-      double load_x = 0;
-      double load_z = 0.3; //向后走两步
-      load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
-      load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
-      load_target_posture[2] = compass_angle;
-      while (!Moveto_CertainPoint(load_target_posture, 0.01))
+      // printf("Grab %s\n", index2name(Item_Grasped_Id));
+      if (Aim_and_Grasp(grasp_state, camera[1], Item_Grasped_Id))
       {
-        step(); //时序乱了
+        printf("抓到回去啦!\n");
+        get_gps_values(gps_values);
+        get_compass_angle(&compass_angle);
+        double load_x = 0;
+        double load_z = 0.3; //向后走两步
+        load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
+        load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
+        load_target_posture[2] = compass_angle;
+        while (!Moveto_CertainPoint(load_target_posture, 0.01))
+        {
+          step(); //时序乱了
+        }
+        *main_state = GotoDropPlace;
+        printf("main_state changes from GrabItem to GotoDropPlace!\n");
+        *grasp_state = 0;
       }
-      *main_state = BackMoving;
-      printf("main_state changes from GrabItem to BackMoving!\n");
-      *grasp_state = 0;
     }
     break;
   }
 
-  case BackMoving:
-  {
-    if (Moveto_CertainPoint(fin_target_posture, 0.05))
-    {
-      if (fin_target_posture[0] == fixed_posture_findempty[CurrentShelf][0] && fin_target_posture[1] == fixed_posture_findempty[CurrentShelf][1])
-      {
-        *main_state = LoadItem;
-        printf("main_state changes from BackMoving to LoadItem!\n");
-        printf("到上货的地方了！\n");
-        // travel_points_sum = 0;
-        //计算一次和上货点的相对位移
-        get_gps_values(gps_values);
-        get_compass_angle(&compass_angle);
-        double load_x = (TargetIndex % 8) * 0.24 - 0.85;
-        double load_z = -0.16; //两步走
-        load_target_posture[0] = gps_values[0] - sin(compass_angle) * load_x + cos(compass_angle) * load_z;
-        load_target_posture[1] = gps_values[1] - cos(compass_angle) * load_x - sin(compass_angle) * load_z;
-        load_target_posture[2] = compass_angle;
-        printf("该上货了！\n");
-        printf("GoodsonShelf[%d][%d] need %s\n", CurrentShelf, TargetIndex, index2name(TargetGood));
-      }
-      else
-      {
-        set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
-        set_posture(fin_target_posture, fixed_posture_loadItem[CurrentShelf][0], fixed_posture_loadItem[CurrentShelf][1], fixed_posture_loadItem[CurrentShelf][2]);
-      }
-    }
-    break;
-  }
-  case LoadItem:
+  case DropItem:
   {
     get_gps_values(gps_values);
     get_compass_angle(&compass_angle);
@@ -328,7 +311,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
         step(); //时序乱了
       }
       base_reset();
-      printf("小心上货！\n");
+      printf("小心上货!\n");
       wb_robot_step(50000 / TIME_STEP);
       moveFingers(width += 0.005);
       wb_robot_step(50000 / TIME_STEP);
@@ -348,8 +331,8 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
       }
       moveFingers(width = 0.0);
       lift(height = 0.020);
-      *main_state = MovingAround;
-      printf("main_state changes from LoadItem to MovingAround!\n");
+      *main_state = WaitIns;
+      printf("main_state changes from DropItem to WaitIns!\n");
       set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
       set_posture(fin_target_posture, recent_posture[0], recent_posture[1], recent_posture[2]);
     }
@@ -377,26 +360,13 @@ int keyboard_control(int c, enum RobotState *main_state)
       recent_posture = fixed_posture_findempty[2];
       TargetGood = name2index("can");
       CurrentShelf = 2;
-      printf("GoodsonShelf[%d][%d] need %s\n", CurrentShelf, TargetIndex, index2name(TargetGood));
-      if (!strcmp("water bottle", objects[i].model)) //水杯特殊高度
-        lift(height = 0.12);
-      else if (!strcmp("cereal box red", objects[i].model)) //红大盒子特殊高度
-        lift(height = 0.50);
-      else if (!strcmp("cereal box", objects[i].model))
-        lift(height = 0.30);
-      else if (TargetIndex < 8)
-        lift(height = 0.05);
-      else if (CurrentShelf > 1) //矮柜0.23
-        lift(height = 0.23);
-      else if (CurrentShelf <= 1) //高柜0.43
-        lift(height = 0.43);
-      main_state = MovingToCabinet;
+      *main_state = MovingToCabinet;
       printf("Go to Fetch Beer\n");
       break;
     }
     case 'C':
     {
-      printf("Manually stopped！\n");
+      printf("Manually stopped!\n");
       *main_state = -1;
       break;
     }
@@ -479,7 +449,7 @@ bool Moveto_CertainPoint(double fin_posture[], double reach_precision)
 {
   if (targetdist_reached(fin_posture, reach_precision) && targetpos_reached(fin_posture, reach_precision))
   {
-    // printf("到达目标位置！\n");
+    // printf("到达目标位置!\n");
     // base_reset();
     return true;
   }
@@ -536,7 +506,7 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
         if (fabs(objects[i].position[0]) < grasp_threshold && fabs(objects[i].position[2] - grasp_dis_set) < grasp_threshold)
         {
           *grasp_state += 1;
-          printf("对准了！\n");
+          printf("对准了!\n");
           base_reset();
           // 用视觉先来个抓手基本值
           printf("物体大小: %lf %lf\n", objects[i].size[0], objects[i].size[1]);
@@ -552,7 +522,7 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
         else
         {
           printf("当前电机力反馈：%.3f\n", wb_motor_get_force_feedback(gripper_motors[1]));
-          printf("抓紧了！\n");
+          printf("抓紧了!\n");
           wb_robot_step(30000 / TIME_STEP); //等他抓稳定
           if (wb_motor_get_force_feedback(gripper_motors[1]) <= -grasp_force_threshold)
           {
@@ -571,7 +541,7 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
               lift(height = 0.23);
             else if (CurrentShelf <= 1) //高柜0.43
               lift(height = 0.43);
-            printf("举起了！height = %.3f\n", height);
+            printf("举起了!height = %.3f\n", height);
             wb_robot_step(10000 / TIME_STEP);
           }
         }
@@ -586,87 +556,81 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
   return false;
 }
 
-//寻找空货架 给四个定点GPS 摄像头看四面墙 返回货架位置和一个商品种类
-bool Find_Full(WbDeviceTag camera)
+// //寻找空货架 给四个定点GPS 摄像头看四面墙 返回货架位置和一个商品种类
+// bool Find_Full(WbDeviceTag camera)
+// {
+//   int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
+//   printf("识别到 %d 个物体.\n", number_of_objects);
+//   const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
+//   int GoodsonShelf[4][16]; //货架上的物品ID号 先下后上 先左后右
+//   for (int i = 0; i < 4; i++)
+//     for (int j = 0; j < 16; j++)
+//       GoodsonShelf[i][j] = -1; //不知道为啥写在定义的时候不成功
+//   for (int i = 0; i < number_of_objects; ++i)
+//   {
+//     // printf("物体 %d 的类型: %s ", i, objects[i].model);
+//     // printf("ID: %d ", objects[i].id);
+//     // printf("相对位置: %lf %lf %lf ", objects[i].position[0], objects[i].position[1],
+//     //        objects[i].position[2]);
+
+//     // printf("物体 %d 的相对姿态: %lf %lf %lf %lf\n", i, objects[i].orientation[0], objects[i].orientation[1],
+//     //        objects[i].orientation[2], objects[i].orientation[3]);
+//     // printf("物体的大小 %d: %lf %lf\n", i, objects[i].size[0], objects[i].size[1]);
+//     // printf("物体 %d 在图像中的坐标: %d %d\n", i, objects[i].position_on_image[0],
+//     //        objects[i].position_on_image[1]);
+//     // printf("物体 %d 在图像中的大小: %d %d\n", i, objects[i].size_on_image[0], objects[i].size_on_image[1]);
+//     // for (int j = 0; j < objects[i].number_of_colors; ++j)
+//     //   printf("颜色 %d/%d: %lf %lf %lf\n", j + 1, objects[i].number_of_colors, objects[i].colors[3 * j],
+//     //           objects[i].colors[3 * j + 1], objects[i].colors[3 * j + 2]);
+//     if (objects[i].position[2] < -3)
+//       continue;
+//     int Shelfx = max(0, floor((objects[i].position[0] + 0.84) * 4.17 + 0.5)); //左右 平均间隔0.24（架子宽度0.25）右移后对应一个系数 四舍五入
+//     int Shelfy = (objects[i].position[1] < -0.2) ? 0 : 1;                     //上下层 -0.20  为上下分界
+
+//     GoodsonShelf[CurrentShelf][Shelfy * 8 + Shelfx] = name2index(objects[i].model);
+//     printf("物体 %s 对应编号 %d 写入[%d] 写入编号为%d\n", objects[i].model, name2index(objects[i].model), Shelfy * 8 + Shelfx, GoodsonShelf[CurrentShelf][Shelfy * 8 + Shelfx]);
+//   }
+
+//   //检测完毕 判断下一个要取的货物类型
+//   int Full_Flag = 0;
+
+//   for (int j = 0; j < 16; j++)
+//     printf("GoodsonShelf[%d][%d] = %s\n", CurrentShelf, j, index2name(GoodsonShelf[CurrentShelf][j]));
+//   for (int j = 0; j < 16; j++)
+//   {
+//     // if (strlen(GoodsonShelf[CurrentShelf][j]) == 0) // 这种判断可能会crash
+//     //   Empty_Flag = 1;
+//     if (GoodsonShelf[CurrentShelf][j] == TargetGood)
+//     {
+//       Full_Flag = 1;
+//       TargetIndex = j;
+//       //如果整排都没有可能会出错 下次一定
+//       printf("GoodsonShelf[%d][%d] fetch %s\n", CurrentShelf, j, index2name(TargetGood));
+//       break;
+//     }
+//   }
+//   if (Full_Flag)
+//     return true;
+//   else
+//     return false;
+// }
+
+bool Find_Full(WbDeviceTag camera, char *good_name, int *item_grasped_id)
 {
   int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
-  printf("识别到 %d 个物体.\n", number_of_objects);
   const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
-  int GoodsonShelf[4][16]; //货架上的物品ID号 先下后上 先左后右
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 16; j++)
-      GoodsonShelf[i][j] = -1; //不知道为啥写在定义的时候不成功
+
   for (int i = 0; i < number_of_objects; ++i)
   {
-    // printf("物体 %d 的类型: %s ", i, objects[i].model);
-    // printf("ID: %d ", objects[i].id);
-    // printf("相对位置: %lf %lf %lf ", objects[i].position[0], objects[i].position[1],
-    //        objects[i].position[2]);
-
-    // printf("物体 %d 的相对姿态: %lf %lf %lf %lf\n", i, objects[i].orientation[0], objects[i].orientation[1],
-    //        objects[i].orientation[2], objects[i].orientation[3]);
-    // printf("物体的大小 %d: %lf %lf\n", i, objects[i].size[0], objects[i].size[1]);
-    // printf("物体 %d 在图像中的坐标: %d %d\n", i, objects[i].position_on_image[0],
-    //        objects[i].position_on_image[1]);
-    // printf("物体 %d 在图像中的大小: %d %d\n", i, objects[i].size_on_image[0], objects[i].size_on_image[1]);
-    // for (int j = 0; j < objects[i].number_of_colors; ++j)
-    //   printf("颜色 %d/%d: %lf %lf %lf\n", j + 1, objects[i].number_of_colors, objects[i].colors[3 * j],
-    //           objects[i].colors[3 * j + 1], objects[i].colors[3 * j + 2]);
     if (objects[i].position[2] < -3)
       continue;
-    int Shelfx = max(0, floor((objects[i].position[0] + 0.84) * 4.17 + 0.5)); //左右 平均间隔0.24（架子宽度0.25）右移后对应一个系数 四舍五入
-    int Shelfy = (objects[i].position[1] < -0.2) ? 0 : 1;                     //上下层 -0.20  为上下分界
-
-    GoodsonShelf[CurrentShelf][Shelfy * 8 + Shelfx] = name2index(objects[i].model);
-    printf("物体 %s 对应编号 %d 写入[%d] 写入编号为%d\n", objects[i].model, name2index(objects[i].model), Shelfy * 8 + Shelfx, GoodsonShelf[CurrentShelf][Shelfy * 8 + Shelfx]);
-  }
-
-  //检测完毕 判断下一个要取的货物类型
-  int Full_Flag = 0;
-
-  for (int j = 0; j < 16; j++)
-    printf("GoodsonShelf[%d][%d] = %s\n", CurrentShelf, j, index2name(GoodsonShelf[CurrentShelf][j]));
-  for (int j = 0; j < 16; j++)
-  {
-    // if (strlen(GoodsonShelf[CurrentShelf][j]) == 0) // 这种判断可能会crash
-    //   Empty_Flag = 1;
-    if (GoodsonShelf[CurrentShelf][j] == TargetGood)
-    {
-      Full_Flag = 1;
-      TargetIndex = j;
-      //如果整排都没有可能会出错 下次一定
-      printf("GoodsonShelf[%d][%d] fetch %s\n", CurrentShelf, j, index2name(TargetGood));
-      break;
-    }
-  }
-  if (Full_Flag)
-    return true;
-  else
-    return false;
-}
-
-//给一个固定的巡逻轨迹 前部摄像头寻找指定商品 靠近直到顶部摄像头能捕捉
-bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id)
-{
-  int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
-  const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
-  double grasp_dis_threshold = -0.5;
-  for (int i = 0; i < number_of_objects; ++i)
-  {
-    // printf("goodname:%s 距离 %s 有 %.3f m \n", good_name, objects[i].model, -objects[i].position[2]);
     if (strcmp(objects[i].model, good_name) == 0)
     {
-      if (objects[i].position[2] > 1.3 * grasp_dis_threshold)
-      {
-        //  //距离近、左右位置对、且是侧面
-        if (objects[i].position[2] > grasp_dis_threshold && fabs(objects[i].position[0]) < 0.1 && objects[i].size[0] <= 0.15)
-        {
-          // printf("找到了离我%.3f m 的 %s\n", -objects[i].position[2], good_name);
-          *item_grasped_id = objects[i].id;
-          return true;
-        }
-      }
-      printf("Too far away\n");
+      *item_grasped_id = objects[i].id;
+      //int Shelfx = max(0, floor((objects[i].position[0] + 0.84) * 4.17 + 0.5)); //左右 平均间隔0.24（架子宽度0.25）右移后对应一个系数 四舍五入
+      int Shelfy = (objects[i].position[1] < -0.2) ? 0 : 1;                     //上下层 -0.20  为上下分界
+      TargetIndex = Shelfy;
+      return true;
     }
   }
   return false;
