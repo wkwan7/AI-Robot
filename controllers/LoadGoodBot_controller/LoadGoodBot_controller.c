@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <base.h>
-#include <gripper.h>
+//#include <gripper.h>
 #include <webots/keyboard.h>
 #include <webots/robot.h>
 #include <webots/motor.h>
@@ -25,8 +25,6 @@
 #define abs(a) (((a) < (0)) ? (0) : (a))
 #define MAX_WIDTH 0.2f
 #define MIN_WIDTH 0.0f
-// WbDeviceTag motorL;
-// WbDeviceTag motorR;
 WbDeviceTag forceL;
 WbDeviceTag forceR;
 #define MAX_HEIGHT 0.4f
@@ -52,7 +50,7 @@ double load_target_posture[3]; //上货点
 
 char *GoodsList[] = {"can", "cereal box", "cereal box red", "jam jar", "honey jar", "water bottle", "biscuit box", "red can", "beer bottle"};
 //抓取时前探的距离，绝对值越小，前探越前
-double Grasp_dis_set[] = {-0.16, -0.18, -0.18, -0.16, -0.16, -0.16, -0.16, -0.16, -0.16};
+double Grasp_dis_set[] = {-0.15, -0.17, -0.17, -0.15, -0.15, -0.15, -0.15, -0.15, -0.15};
 //寻找货物定点 右->...-> 上->...->左->...->下
 int Travel_Point_Index = 0; //定点编号
 int travel_points_sum = 0;  //走过的定点数量
@@ -448,7 +446,7 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
       }
       else if (*grasp_state == 1) //抓
       {
-        double grasp_force_threshold = 50.0;
+        double grasp_force_threshold = 40.0;
         if (wb_motor_get_force_feedback(gripper_motors[1]) > -grasp_force_threshold)
           moveFingers(width -= 0.0003); //步进
         else
@@ -625,12 +623,7 @@ static void passive_wait(double sec)
 //打印帮助
 static void display_helper_message()
 {
-  printf("Control commands:\n");
-  printf(" Arrows:       Move the robot\n");
-  printf(" Page Up/Down: Rotate the robot\n");
-  printf(" +/-:          (Un)grip\n");
-  printf(" Shift + arrows:   Handle the arm\n");
-  printf(" Space: Reset\n");
+  printf("Load Good Bot Start!\n");
 }
 
 //设置机械臂上升高度

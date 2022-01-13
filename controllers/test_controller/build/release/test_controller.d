@@ -1,4 +1,4 @@
-build/release/LoadGoodBot_controller.o: LoadGoodBot_controller.c \
+build/release/test_controller.o: test_controller.c \
  C:\Program\ Files\Webots/projects/robots/kuka/youbot/libraries/youbot_control/include/base.h \
  C:\Program\ Files\Webots/include/controller/c/webots/types.h \
  C:\Program\ Files\Webots/include/controller/c/webots/keyboard.h \
