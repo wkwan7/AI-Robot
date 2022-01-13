@@ -9,11 +9,11 @@ textFiles: 0 "controllers/FetchGoodBot_controller/FetchGoodBot_controller.c"
 globalOptionalRendering: LidarPointClouds::LidarRaysPaths
 consoles: Console:All:All
 renderingDevicePerspectives: FetchGoodBot:camera_front;1;1;0;0
-renderingDevicePerspectives: FetchGoodBot:camera_top;1;1;0;0.325431
+renderingDevicePerspectives: FetchGoodBot:camera_top;1;0.800781;0;0.325431
 renderingDevicePerspectives: LoadGoodBot(1):camera_front;1;1;0;0
 renderingDevicePerspectives: LoadGoodBot(1):camera_top;1;1;0;0
 renderingDevicePerspectives: LoadGoodBot:camera_front;1;0.539063;0.717308;0
-renderingDevicePerspectives: LoadGoodBot:camera_top;1;0.609375;0.696154;0.189406
+renderingDevicePerspectives: LoadGoodBot:camera_top;1;0.609375;0.696154;0.340268
 renderingDevicePerspectives: SuperBot_v3(1):camera_front;1;0.625;0;0
 renderingDevicePerspectives: SuperBot_v3(1):camera_top;1;0.636719;0;0.192661
 renderingDevicePerspectives: SuperBot_v3(2):camera_front;1;0.722656;0.584906;0.238057

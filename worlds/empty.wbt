@@ -42,7 +42,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation -0.3868405705396502 -0.7763561314113123 -0.49761986516277584 2.0555778321421228
-  position -3.4769667184606994 10.422132357529303 -2.0013096650370645
+  position -2.970303854415684 10.665433344122523 -1.845689505884025
 }
 TexturedBackground {
   texture "factory"
@@ -780,7 +780,7 @@ DEF LoadGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.13309073679466762 -0.16300124100493218 -0.01505375419412143
-        rotation -0.00555750293497465 -0.9999413305720231 -0.009297826357789 0.3341919398073349
+        rotation -0.005557502934974658 -0.9999413305720231 -0.009297826357789012 0.3341919398073349
         children [
           Shape {
             appearance DEF Wheel_Outside_Color PBRAppearance {
@@ -1121,7 +1121,7 @@ DEF LoadGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.1328462224292755 -0.16300896938233866 -0.015063204460498256
-        rotation -0.016040640194355287 0.9998680176027879 0.0025778357640137764 0.22223902491863112
+        rotation -0.016040640194355277 0.9998680176027879 0.0025778357640137755 0.22223902491863112
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -1288,7 +1288,7 @@ DEF LoadGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.13304980505522637 0.16301000821992018 -0.015010311206835228
-        rotation -7.61744926168846e-05 -0.9999999954398666 -5.7599598504954956e-05 2.90907756334467
+        rotation -7.617449261688459e-05 -0.9999999954398666 -5.7599598504954935e-05 2.90907756334467
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -1450,7 +1450,7 @@ DEF LoadGoodBot Robot {
       0 0 0
     ]
   }
-  controller ""
+  controller "LoadGoodBot_controller"
 }
 DEF bear Can {
   translation -1.2125899998105076 0.07203134631833945 2.6128699998130567
@@ -2013,8 +2013,8 @@ DEF FetchGoodBot Robot {
         }
       ]
       endPoint DEF WHEEL_SOLID Solid {
-        translation 0.1330907367952074 -0.16300124100493218 -0.01505375419321031
-        rotation -0.005557502722880864 -0.9999413305755158 -0.00929782610895018 0.33419194984784933
+        translation 0.1330907367952074 -0.16300124100493218 -0.015053754193210311
+        rotation -0.005557502722880864 -0.9999413305755158 -0.009297826108950179 0.33419194984784933
         children [
           Shape {
             appearance DEF Wheel_Outside_Color PBRAppearance {
@@ -2187,7 +2187,7 @@ DEF FetchGoodBot Robot {
         }
       ]
       endPoint DEF WHEEL_SOLID Solid {
-        translation 0.13317663562252138 0.16299987058105292 -0.014959538990938326
+        translation 0.13317663562252138 0.16299987058105292 -0.014959538990938322
         rotation 0.0016798802803537215 0.9999975132671317 -0.0014667862137205826 1.8801801733662904
         children [
           Shape {
@@ -2354,8 +2354,8 @@ DEF FetchGoodBot Robot {
         }
       ]
       endPoint DEF WHEEL_SOLID Solid {
-        translation -0.13284622243083144 -0.16300896938233866 -0.015063204464283894
-        rotation -0.0160406383933328 0.9998680176319052 0.002577835677119138 0.2222390495331234
+        translation -0.13284622243083144 -0.16300896938233866 -0.015063204464283896
+        rotation -0.016040638393332807 0.9998680176319052 0.002577835677119139 0.2222390495331234
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -2521,8 +2521,8 @@ DEF FetchGoodBot Robot {
         }
       ]
       endPoint DEF WHEEL_SOLID Solid {
-        translation -0.13304980505512526 0.16301000821992018 -0.015010311207323658
-        rotation -7.617449229083756e-05 -0.9999999954398664 -5.759959884549824e-05 2.9090775731515857
+        translation -0.13304980505512526 0.16301000821992018 -0.01501031120732366
+        rotation -7.617449229083752e-05 -0.9999999954398664 -5.759959884549823e-05 2.9090775731515857
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -3445,7 +3445,7 @@ Solid {
   ]
 }
 DEF soda Solid {
-  translation 3.72499 0.378221 -0.15
+  translation 4.17499 0.378221 1.6
   children [
     Shape {
       appearance PBRAppearance {
