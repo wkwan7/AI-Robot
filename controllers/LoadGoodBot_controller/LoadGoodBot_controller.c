@@ -417,7 +417,8 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
           lift(height = 0.10);
         else
           lift(height = 0.0);
-        moveFingers(width = objects[i].size[0] / 1.5);
+        #define MAXSIZE 0.1
+        moveFingers(width = MAXSIZE / 1.5);
         // printf("ID %d 的物体 %s 在 %lf %lf\n", objects[i].id, objects[i].model, objects[i].position[0], objects[i].position[2]);
         get_gps_values(gps_values);
         get_compass_angle(&compass_angle);
@@ -439,8 +440,8 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
           printf("对准了！\n");
           base_reset();
           // 用视觉先来个抓手基本值
-          printf("物体大小: %lf %lf\n", objects[i].size[0], objects[i].size[1]);
-          moveFingers(width = objects[i].size[0] / 2);
+          //printf("物体大小: %lf %lf\n", objects[i].size[0], objects[i].size[1]);
+          moveFingers(width = MAXSIZE / 2);
           wb_robot_step(30000 / TIME_STEP);
         }
       }
@@ -584,7 +585,7 @@ bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id)
       if (objects[i].position[2] > 1.3 * grasp_dis_threshold)
       {
         //  //距离近、左右位置对、且是侧面
-        if (objects[i].position[2] > grasp_dis_threshold && fabs(objects[i].position[0]) < 0.1 && objects[i].size[0] <= 0.15)
+        if (objects[i].position[2] > grasp_dis_threshold && fabs(objects[i].position[0]) < 0.1)
         {
           // printf("找到了离我%.3f m 的 %s\n", -objects[i].position[2], good_name);
           *item_grasped_id = objects[i].id;
