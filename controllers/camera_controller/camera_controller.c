@@ -61,9 +61,9 @@ int main(int argc, char **argv)
   WbDeviceTag camera = wb_robot_get_device("camera_front"); //相机初始化
   wb_camera_enable(camera, TIME_STEP);
   wb_camera_recognition_enable(camera, TIME_STEP);
-  char receiverd[10] = "receiver";
-  WbDeviceTag receiver = wb_robot_get_device(receiverd);
-  wb_receiver_enable(receiver, 10);
+  // char receiverd[10] = "receiver";
+  // WbDeviceTag receiver = wb_robot_get_device(receiverd);
+  // wb_receiver_enable(receiver, 10);
   /* main loop
    * Perform simulation steps of TIME_STEP milliseconds
    * and leave the loop when the simulation is over
@@ -75,31 +75,28 @@ int main(int argc, char **argv)
      * Enter here functions to read sensor data, like:
      *  double val = wb_distance_sensor_get_value(my_sensor);
      */
-    //printf("one loop\n");
-    if (wb_receiver_get_queue_length(receiver) > 0)
-    {
-      printf("start service for camera\n");
-      const char *message = wb_receiver_get_data(receiver);
-      int *p = (int *)message;
-      wb_receiver_next_packet(receiver);
+    // printf("one loop\n");
+    //  if (wb_receiver_get_queue_length(receiver) > 0)
+    //  {
+    //printf("start service for camera\n");
 
-      struct RecognizationInfo info;
-      info.number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
-      const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
-      for (int i = 0; i < info.number_of_objects; i++)
-      {
-        strcpy(info.objects[i].model, objects[i].model);
-        info.objects[i].id = objects[i].id;
-        memcpy(info.objects[i].position, objects[i].position, sizeof(objects[i].position));
-        memcpy(info.objects[i].size, objects[i].size, sizeof(objects[i].size));
-      }
-      wb_emitter_send(emitter, &info, sizeof(struct RecognizationInfo));
-      // int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
-      // int a[2] = {0};
-      // a[0] = number_of_objects;
-      // wb_emitter_send(emitter, &a, 2*sizeof(int));
-      printf("respond\n");
+    struct RecognizationInfo info;
+    info.number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
+    const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
+    for (int i = 0; i < info.number_of_objects; i++)
+    {
+      strcpy(info.objects[i].model, objects[i].model);
+      info.objects[i].id = objects[i].id;
+      memcpy(info.objects[i].position, objects[i].position, sizeof(objects[i].position));
+      memcpy(info.objects[i].size, objects[i].size, sizeof(objects[i].size));
     }
+    wb_emitter_send(emitter, &info, sizeof(struct RecognizationInfo));
+    // int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
+    // int a[2] = {0};
+    // a[0] = number_of_objects;
+    // wb_emitter_send(emitter, &a, 2*sizeof(int));
+    //printf("respond\n");
+    //}
 
     /* Process sensor data here */
 

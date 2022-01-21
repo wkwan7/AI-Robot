@@ -14,10 +14,11 @@
 #include <webots/robot.h>
 #include <webots/motor.h>
 #include <webots/touch_sensor.h>
-#include <webots/camera.h>
-#include <webots/camera_recognition_object.h>
+// #include <webots/camera.h>
+// #include <webots/camera_recognition_object.h>
 #include <webots/gps.h>
 #include <webots/compass.h>
+#include <webots/receiver.h>
 #define TIME_STEP 32
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -35,9 +36,10 @@ WbDeviceTag forceR;
 #define GRIPPER_MOTOR_MAX_SPEED 0.1
 #define PI 3.1415926535f
 static WbDeviceTag gripper_motors[3];
-static WbDeviceTag camera[2];
+// static WbDeviceTag camera[2];
 WbDeviceTag gps;
 WbDeviceTag compass;
+WbDeviceTag receiver;
 double gps_values[2];         // gps值
 double compass_angle;         //罗盘角度
 double initial_posture[3];    //起点位姿,0为x,1为z,2为角度，每段轨迹只设置一次
@@ -102,12 +104,55 @@ bool targetpos_reached(double target_posture[], double pos_threshold);
 int name2index(char *name);
 char *index2name(int index);
 
-bool Find_Full(WbDeviceTag camera, char *good_name, int *item_grasped_id);
+bool Find_Full(char *good_name, int *item_grasped_id);
 // bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id);
-bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID);
+bool Aim_and_Grasp(int *grasp_state, int objectID);
 bool Moveto_CertainPoint(double fin_posture[], double reach_precision);
 void Robot_State_Machine(enum RobotState *main_state, int *grasp_state);
 
+typedef struct myObject
+{
+  int id;
+  char model[20];
+  double position[3];
+  double size[2];
+} myObject;
+
+typedef struct RecognizationInfo
+{
+  int number_of_objects;
+  myObject objects[30];
+} RecognizationInfo;
+// typedef struct RecognizationInfo RecognizationInfo;
+
+struct RecognizationInfo my_get_recognization_info()
+{
+  // printf("start ask for service\n");
+  //  WbDeviceTag emitter = wb_robot_get_device("emitter");
+  //  struct RecognizationInfo *info = malloc(sizeof(RecognizationInfo));
+  //  int flag = 1;
+  while (wb_receiver_get_queue_length(receiver) > 0)
+  {
+    // const char *message = wb_receiver_get_data(receiver);
+    // float *p = (float *)message;
+    wb_receiver_next_packet(receiver);
+  }
+  // wb_emitter_send(emitter, &flag, sizeof(int));
+  // printf("sended\n");
+
+  while (wb_receiver_get_queue_length(receiver) == 0)
+  {
+    step();
+  }
+  // wb_robot_step(5000 / TIME_STEP);
+  // printf("start receive %d\n", wb_receiver_get_queue_length(receiver));
+  const char *message = wb_receiver_get_data(receiver);
+  // printf("received %s\n", message);
+  struct RecognizationInfo *p = (struct RecognizationInfo *)message;
+  // printf("number:%d model: %s\n", p->number_of_objects, p->objects[0].model);
+  //  printf("number:%d model:\n", p->number_of_objects);
+  return *p;
+}
 //*?                 main函数      <开始>            ?*//
 //主函数
 
@@ -142,12 +187,14 @@ void init_all()
   base_init();
   passive_wait(0.0);
 
-  camera[0] = wb_robot_get_device("camera_top"); //相机初始化
-  camera[1] = wb_robot_get_device("camera_front");
-  wb_camera_enable(camera[0], TIME_STEP);
-  wb_camera_recognition_enable(camera[0], TIME_STEP);
-  wb_camera_enable(camera[1], TIME_STEP);
-  wb_camera_recognition_enable(camera[1], TIME_STEP);
+  receiver = wb_robot_get_device("receiver");
+  wb_receiver_enable(receiver, 10);
+  // camera[0] = wb_robot_get_device("camera_top"); //相机初始化
+  // camera[1] = wb_robot_get_device("camera_front");
+  // wb_camera_enable(camera[0], TIME_STEP);
+  // wb_camera_recognition_enable(camera[0], TIME_STEP);
+  // wb_camera_enable(camera[1], TIME_STEP);
+  // wb_camera_recognition_enable(camera[1], TIME_STEP);
 
   // GPS初始化
   gps = wb_robot_get_device("gps");
@@ -212,7 +259,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   // 寻找柜子上所需物品，并到达其前方
   case RecognizeFull:
   {
-    if (Find_Full(camera[0], index2name(TargetGood), &Item_Grasped_Id)) //货架上有货物
+    if (Find_Full(index2name(TargetGood), &Item_Grasped_Id)) //货架上有货物
     {
       set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
       get_gps_values(gps_values);
@@ -240,7 +287,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   // 调整位置并抓起物体，然后后退几步
   case GrabItem:
   {
-    if (Aim_and_Grasp(grasp_state, camera[1], Item_Grasped_Id))
+    if (Aim_and_Grasp(grasp_state, Item_Grasped_Id))
     {
       printf("抓到回去啦!\n");
       lift(height = 0.1);
@@ -375,11 +422,14 @@ bool Moveto_CertainPoint(double fin_posture[], double reach_precision)
 }
 
 //前部摄像头校准并抓取
-bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
+bool Aim_and_Grasp(int *grasp_state, int objectID)
 {
   //饼干盒ID43 水瓶ID56
-  int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
-  const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
+  // int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
+  // const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
+  RecognizationInfo mp = my_get_recognization_info();
+  int number_of_objects = mp.number_of_objects;
+  myObject *objects = mp.objects;
   for (int i = 0; i < number_of_objects; ++i)
   {
     if (objects[i].id == objectID) //找到画面中第一个ID物体
@@ -408,7 +458,7 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
         grasp_target_posture[2] = compass_angle;
 
         Moveto_CertainPoint(grasp_target_posture, 0.05);
-        //printf("one move\n");
+        // printf("one move\n");
 
         double grasp_threshold = 0.02;
         if (fabs(objects[i].position[0]) < grasp_threshold && fabs(objects[i].position[2] - grasp_dis_set) < grasp_threshold)
@@ -464,23 +514,30 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
   return false;
 }
 
-bool Find_Full(WbDeviceTag camera, char *good_name, int *item_grasped_id)
+bool Find_Full(char *good_name, int *item_grasped_id)
 {
-  int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
-  const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
+  // int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
+  // const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
+  RecognizationInfo mp = my_get_recognization_info();
+  int number_of_objects = mp.number_of_objects;
+  myObject *objects = mp.objects;
 
   for (int i = 0; i < number_of_objects; ++i)
   {
-    if (objects[i].position[2] < -3)
+    if (objects[i].position[2] < -5)
       continue;
     if (strcmp(objects[i].model, good_name) == 0)
     {
       *item_grasped_id = objects[i].id;
+      RecognizationInfo mp = my_get_recognization_info();
+      int number_of_objects = mp.number_of_objects;
+      myObject *objects = mp.objects;
       printf("Item_Grasped_Id: %d %d\n", Item_Grasped_Id, *item_grasped_id);
+      printf("position: %lf %lf %lf\n", objects[i].position[0], objects[i].position[1], objects[i].position[2]);
       int Shelfx = max(0, floor((objects[i].position[0] + 0.84) * 4.17 + 0.5)); //左右 平均间隔0.24（架子宽度0.25）右移后对应一个系数 四舍五入
       int Shelfy = (objects[i].position[1] < -0.2) ? 0 : 1;                     //上下层 -0.20  为上下分界
       printf("shelfx: %d y:%d\n", Shelfx, Shelfy);
-      TargetIndex = Shelfx;
+      TargetIndex = Shelfx + Shelfy * 8;
       return true;
     }
   }

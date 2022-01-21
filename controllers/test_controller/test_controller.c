@@ -14,8 +14,8 @@
 #include <webots/robot.h>
 #include <webots/motor.h>
 #include <webots/touch_sensor.h>
-#include <webots/camera.h>
-#include <webots/camera_recognition_object.h>
+// #include <webots/camera.h>
+// #include <webots/camera_recognition_object.h>
 #include <webots/gps.h>
 #include <webots/compass.h>
 #include <webots/receiver.h>
@@ -35,7 +35,7 @@ WbDeviceTag forceR;
 #define GRIPPER_MOTOR_MAX_SPEED 0.1
 #define PI 3.1415926535f
 static WbDeviceTag gripper_motors[3];
-static WbDeviceTag camera[2];
+//static WbDeviceTag camera[2];
 WbDeviceTag gps;
 WbDeviceTag compass;
 WbDeviceTag receiver;
@@ -120,9 +120,9 @@ bool targetpos_reached(double target_posture[], double pos_threshold);
 int name2index(char *name);
 char *index2name(int index);
 
-bool Find_Empty(WbDeviceTag camera);
-bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id);
-bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID);
+bool Find_Empty();
+bool Find_Goods(char *good_name, int *item_grasped_id);
+bool Aim_and_Grasp(int *grasp_state, int objectID);
 bool Moveto_CertainPoint(double fin_posture[], double reach_precision);
 void Robot_State_Machine(enum RobotState *main_state, int *grasp_state);
 
@@ -273,7 +273,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   }
   case RecognizeEmpty:
   {
-    if (Find_Empty(camera[0])) //货架上有空位
+    if (Find_Empty()) //货架上有空位
     {
       set_posture(initial_posture, gps_values[0], gps_values[1], compass_angle);
       set_posture(fin_target_posture, -1, 0, PI / 2);
@@ -299,7 +299,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   case SearchItem:
   {
     //这里写识别待抓取物体 比如正好面对时物品
-    if (Find_Goods(camera[1], index2name(TargetGood), &Item_Grasped_Id))
+    if (Find_Goods(index2name(TargetGood), &Item_Grasped_Id))
     {
       *main_state = GrabItem;
       printf("main_state changes from SearchItems to GrabItem!\n");
@@ -315,7 +315,7 @@ void Robot_State_Machine(enum RobotState *main_state, int *grasp_state)
   }
   case GrabItem:
   {
-    if (Aim_and_Grasp(grasp_state, camera[1], Item_Grasped_Id))
+    if (Aim_and_Grasp(grasp_state, Item_Grasped_Id))
     {
       printf("抓到回去啦!\n");
       get_gps_values(gps_values);
@@ -447,7 +447,7 @@ bool Moveto_CertainPoint(double fin_posture[], double reach_precision)
 }
 
 //前部摄像头校准并抓取
-bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
+bool Aim_and_Grasp(int *grasp_state, int objectID)
 {
   //饼干盒ID43 水瓶ID56
   // int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
@@ -540,7 +540,7 @@ bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID)
 }
 
 //寻找空货架 给四个定点GPS 摄像头看四面墙 返回货架位置和一个商品种类
-bool Find_Empty(WbDeviceTag camera)
+bool Find_Empty()
 {
   // int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
   // const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);
@@ -627,7 +627,7 @@ bool Find_Empty(WbDeviceTag camera)
 }
 
 //给一个固定的巡逻轨迹 前部摄像头寻找指定商品 靠近直到顶部摄像头能捕捉
-bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id)
+bool Find_Goods(char *good_name, int *item_grasped_id)
 {
   // int number_of_objects = wb_camera_recognition_get_number_of_objects(camera);
   // const WbCameraRecognitionObject *objects = wb_camera_recognition_get_objects(camera);

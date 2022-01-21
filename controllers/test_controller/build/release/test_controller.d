@@ -7,9 +7,6 @@ build/release/test_controller.o: test_controller.c \
  C:\Program\ Files\Webots/include/controller/c/webots/nodes.h \
  C:\Program\ Files\Webots/include/controller/c/webots/motor.h \
  C:\Program\ Files\Webots/include/controller/c/webots/touch_sensor.h \
- C:\Program\ Files\Webots/include/controller/c/webots/camera.h \
- C:\Program\ Files\Webots/include/controller/c/webots/camera_recognition_object.h \
- C:\Program\ Files\Webots/include/controller/c/webots/camera_recognition_object.h \
  C:\Program\ Files\Webots/include/controller/c/webots/gps.h \
  C:\Program\ Files\Webots/include/controller/c/webots/compass.h \
  C:\Program\ Files\Webots/include/controller/c/webots/receiver.h \

@@ -41,8 +41,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.3191641460787558 0.9119288119408764 0.2579148886937708 4.832978194368414
-  position -6.02376397533947 6.039236252074773 0.8773374201226559
+  orientation 0.5957762478862124 -0.765931731859744 -0.24165935650199802 5.30912635161604
+  position 5.759786785634252 6.014573651866005 5.722771354990262
 }
 TexturedBackground {
   texture "factory"
@@ -4025,73 +4025,122 @@ Floor {
   appearance ThreadMetalPlate {
   }
 }
+PlasticCrate {
+  translation 5.013470000000199 -0.00019627921719712893 1.5744600000001026
+  rotation 1.750745069271363e-06 0.9999999999947747 -2.7176379583764946e-06 0.0019540685031679272
+  size 0.6 0.2 0.45
+  mass 1
+}
+PlasticCrate {
+  translation 4.362928928774168 -0.0002648704201651808 1.5891770016200775
+  rotation 0.00734093868629855 -0.9998665292288244 -0.014595696184425862 0.0030079886019319744
+  name "plastic crate(1)"
+  size 0.6 0.2 0.45
+  mass 1
+}
+SolidBox {
+  translation 5.41943 2.50208 1.23275
+  rotation -0.5773502691896258 0.5773502691896258 -0.5773502691896258 2.094
+  name "box(1)"
+  size 0.02 2.5 1.2
+  appearance PBRAppearance {
+    baseColor 0 0 0
+    baseColorMap ImageTexture {
+      url [
+        "https://raw.githubusercontent.com/cyberbotics/webots/R2021b/projects/default/worlds/textures/tagged_wall.jpg"
+      ]
+    }
+    roughness 0.5
+    metalness 0
+  }
+}
+UR10e {
+  translation 5.32 0.11 1.02
+  rotation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
+  controller "my_ure_can_grasper"
+  selfCollision FALSE
+  toolSlot [
+    Robotiq3fGripper {
+    }
+    DistanceSensor {
+      translation 0 0.1 0
+      rotation 0 0 1 1.570796
+    }
+  ]
+}
+ConveyorBelt {
+  translation 4.26 0 -2.70115e-06
+  rotation 0 1 0 -5.307179586466759e-06
+  size 1.8 0.1 0.7
+  appearance CorrugatedMetal {
+    textureTransform TextureTransform {
+      scale 6 3.1
+    }
+  }
+  borderHeight 0
+  speed 0.2
+}
+SolidBox {
+  translation 4.715 0.055 0.9923
+  size 1.5 0.11 0.4
+  appearance GalvanizedMetal {
+  }
+}
 DEF LoadGoodBot Robot {
-  translation -2.49 0.15 -2.26
-  rotation 0 1 0 1.01503e-06
+  translation -2.59312 0.0680529 -1.98884
+  rotation 0.1133755944889252 0.9748234029995441 -0.19200340501843016 0.03201226483190221
   children [
+    Emitter {
+      channel 1
+    }
+    Receiver {
+    }
+    Robot {
+      children [
+        Camera {
+          translation 0.2 0.12 0
+          rotation 2.397439454201474e-09 -0.9999967723417943 0.002540729421580232 1.56826
+          children [
+            Transform {
+              translation 0 0 0.015
+              rotation 1 0 0 1.57
+              children [
+                Shape {
+                  appearance ScrewThread {
+                  }
+                  geometry Cylinder {
+                    height 0.03
+                    radius 0.02
+                  }
+                }
+              ]
+            }
+          ]
+          name "camera_front"
+          fieldOfView 1.8
+          width 256
+          height 128
+          antiAliasing TRUE
+          recognition Recognition {
+            frameColor 0.929412 0.831373 0
+            frameThickness 2
+          }
+        }
+        Receiver {
+          channel 1
+        }
+        Emitter {
+        }
+      ]
+      name "SubRobot"
+      controller "camera_controller"
+    }
     GPS {
     }
     InertialUnit {
     }
     SickLms291 {
       translation 0 0.2 -0.11
-    }
-    Camera {
-      translation 0.22 0.3 0
-      rotation -0.0025338194675707773 -0.9999967898715674 2.337909508737162e-06 1.57334
-      children [
-        Transform {
-          translation 0 0.005 2.1684e-19
-          rotation 1 0 0 1.57
-          children [
-            Shape {
-              appearance ScrewThread {
-              }
-              geometry Box {
-                size 0.025 0.02 0.05
-              }
-            }
-          ]
-        }
-      ]
-      name "camera_top"
-      fieldOfView 1.8
-      width 256
-      height 128
-      antiAliasing TRUE
-      recognition Recognition {
-        frameColor 0.17968 0.765625 0.7109
-        frameThickness 2
-      }
-    }
-    Camera {
-      translation 0.189449 0.12 0
-      rotation 2.397439454201474e-09 -0.9999967723417943 0.002540729421580232 1.56826
-      children [
-        Transform {
-          translation 0 0 0.015
-          rotation 1 0 0 1.57
-          children [
-            Shape {
-              appearance ScrewThread {
-              }
-              geometry Cylinder {
-                height 0.03
-                radius 0.02
-              }
-            }
-          ]
-        }
-      ]
-      name "camera_front"
-      fieldOfView 1.8
-      width 256
-      height 128
-      antiAliasing TRUE
-      recognition Recognition {
-        frameColor 0.929412 0.831373 0
-        frameThickness 2
-      }
     }
     Compass {
       rotation 1 0 0 -1.5707953071795862
@@ -4183,7 +4232,7 @@ DEF LoadGoodBot Robot {
       children [
         DEF LIFT_SLIDER SliderJoint {
           jointParameters JointParameters {
-            position 0.019992739923769348
+            position 0.01998326345841888
             axis 0 -1 0
           }
           device [
@@ -4195,12 +4244,12 @@ DEF LoadGoodBot Robot {
             }
           ]
           endPoint DEF LIFT Solid {
-            translation -9.140730443668588e-07 0.04001687288149683 -0.0425215511276919
+            translation -9.140730443668588e-07 0.0400263493468473 -0.0425215511276919
             rotation 0.9999999774866106 9.927636966969892e-05 -0.00018753927796403 5.3513290296673704e-05
             children [
               DEF LEFT_FINGER_SLIDER SliderJoint {
                 jointParameters JointParameters {
-                  position 8.580047836976429e-08
+                  position 1.5034313065525655e-06
                   axis -1 0 0
                 }
                 device [
@@ -4211,7 +4260,7 @@ DEF LoadGoodBot Robot {
                   }
                 ]
                 endPoint DEF LEFT_FINGER Solid {
-                  translation -0.0220000858004784 0 -0.02
+                  translation -0.022001503431306586 0 -0.02
                   children [
                     Group {
                       children [
@@ -4252,7 +4301,7 @@ DEF LoadGoodBot Robot {
               }
               DEF RIGHT_FINGER_SLIDER SliderJoint {
                 jointParameters JointParameters {
-                  position 8.791742792911964e-08
+                  position 9.127304019642396e-07
                   axis 1 0 0
                 }
                 device [
@@ -4264,7 +4313,7 @@ DEF LoadGoodBot Robot {
                   }
                 ]
                 endPoint DEF RIGHT_FINGER Solid {
-                  translation 0.022000087956488078 2.5460372490987426e-06 -0.020000008926034374
+                  translation 0.022000912769462113 2.5460372490987426e-06 -0.020000008926034374
                   rotation 0.9796257590612942 0.0005808194273917916 0.20083086125487795 1.2991258418468474e-07
                   children [
                     Group {
@@ -4562,7 +4611,7 @@ DEF LoadGoodBot Robot {
     }
     DEF wheel1 HingeJoint {
       jointParameters HingeJointParameters {
-        position 34.058199109213305
+        position 39.05016638365629
         axis 0 0 -1
         anchor 0.133 -0.015 0.16
       }
@@ -4577,7 +4626,7 @@ DEF LoadGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 0.16
-        rotation 0.177436937686146 -0.6958861780602786 0.6958868875968427 3.492811420720324
+        rotation -0.6616666134616683 0.5301870987704227 -0.5301876393575856 1.972525644428456
         children [
           Shape {
             appearance DEF Wheel_Outside_Color PBRAppearance {
@@ -4736,7 +4785,7 @@ DEF LoadGoodBot Robot {
     }
     DEF wheel2 HingeJoint {
       jointParameters HingeJointParameters {
-        position -332.0861330064314
+        position -335.9502406142026
         axis 0 0 -1
         anchor 0.133 -0.015 -0.16
       }
@@ -4751,7 +4800,7 @@ DEF LoadGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 -0.16
-        rotation 0.3358734298226322 -0.66576367684406 0.6662940535036006 3.7901433009107577
+        rotation 0.5440358975758922 0.5930701089594448 -0.5935425747220041 4.138766810197896
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -4903,7 +4952,7 @@ DEF LoadGoodBot Robot {
     }
     DEF wheel3 HingeJoint {
       jointParameters HingeJointParameters {
-        position -295.9327538657174
+        position -299.79985464653174
         axis 0 0 -1
         anchor -0.133 -0.015 0.16
       }
@@ -4918,7 +4967,7 @@ DEF LoadGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 0.16
-        rotation 0.3444682669274187 -0.6635660393707029 0.6640946652954676 3.8055598281040126
+        rotation 0.5339791832356566 0.5976190110747568 -0.5980951006930344 4.123174586773267
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -5070,7 +5119,7 @@ DEF LoadGoodBot Robot {
     }
     DEF wheel4 HingeJoint {
       jointParameters HingeJointParameters {
-        position -69.32617363847352
+        position -64.33420578984781
         axis 0 0 -1
         anchor -0.133 -0.015 -0.16
       }
@@ -5085,7 +5134,7 @@ DEF LoadGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 -0.16
-        rotation 0.4000445897558162 0.6478022229732159 -0.648318290747732 3.903231679152402
+        rotation 0.06535074302449452 -0.7053142400956876 0.7058761244753851 3.2722122312501254
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -5247,77 +5296,65 @@ DEF LoadGoodBot Robot {
       0 0 0
     ]
   }
-  controller "ros"
+  controller "FetchGoodBot_controller"
   controllerArgs [
     "--name=robot"
   ]
 }
 DEF FetchGoodBot Robot {
-  translation 3.25 0.0603 1
+  translation 3.25 0.06 1
   children [
+    Emitter {
+      channel 1
+    }
+    Receiver {
+    }
+    Robot {
+      children [
+        Camera {
+          translation 0.2 0.3 0
+          rotation 2.397439454201474e-09 -0.9999967723417943 0.002540729421580232 1.56826
+          children [
+            Transform {
+              translation 0 0 0.015
+              rotation 1 0 0 1.57
+              children [
+                Shape {
+                  appearance ScrewThread {
+                  }
+                  geometry Cylinder {
+                    height 0.03
+                    radius 0.02
+                  }
+                }
+              ]
+            }
+          ]
+          name "camera_front"
+          fieldOfView 1.8
+          width 256
+          height 128
+          antiAliasing TRUE
+          recognition Recognition {
+            frameColor 0.929412 0.831373 0
+            frameThickness 2
+          }
+        }
+        Receiver {
+          channel 1
+        }
+        Emitter {
+        }
+      ]
+      name "SubRobot"
+      controller "camera_controller"
+    }
     GPS {
     }
     InertialUnit {
     }
     SickLms291 {
       translation 0 0.2 -0.11
-    }
-    Camera {
-      translation 0.22 0.3 0
-      rotation -0.0025338194675707773 -0.9999967898715674 2.337909508737162e-06 1.57334
-      children [
-        Transform {
-          translation 0 0.005 2.1684e-19
-          rotation 1 0 0 1.57
-          children [
-            Shape {
-              appearance ScrewThread {
-              }
-              geometry Box {
-                size 0.025 0.02 0.05
-              }
-            }
-          ]
-        }
-      ]
-      name "camera_top"
-      fieldOfView 1.8
-      width 256
-      height 128
-      antiAliasing TRUE
-      recognition Recognition {
-        frameColor 0.17968 0.765625 0.7109
-        frameThickness 2
-      }
-    }
-    Camera {
-      translation 0.189449 0.12 0
-      rotation 2.397439454201474e-09 -0.9999967723417943 0.002540729421580232 1.56826
-      children [
-        Transform {
-          translation 0 0 0.015
-          rotation 1 0 0 1.57
-          children [
-            Shape {
-              appearance ScrewThread {
-              }
-              geometry Cylinder {
-                height 0.03
-                radius 0.02
-              }
-            }
-          ]
-        }
-      ]
-      name "camera_front"
-      fieldOfView 1.8
-      width 256
-      height 128
-      antiAliasing TRUE
-      recognition Recognition {
-        frameColor 0.929412 0.831373 0
-        frameThickness 2
-      }
     }
     Compass {
       rotation 1 0 0 -1.5707953071795862
@@ -5348,7 +5385,7 @@ DEF FetchGoodBot Robot {
               children [
                 Shape {
                   appearance DEF ribbon_color PBRAppearance {
-                    baseColor 0.666667 0.666667 0
+                    baseColor 1 1 0
                     roughness 1
                     metalness 0
                   }
@@ -5409,7 +5446,7 @@ DEF FetchGoodBot Robot {
       children [
         DEF LIFT_SLIDER SliderJoint {
           jointParameters JointParameters {
-            position 0.019992739923769348
+            position 0.01998326345841888
             axis 0 -1 0
           }
           device [
@@ -5421,12 +5458,12 @@ DEF FetchGoodBot Robot {
             }
           ]
           endPoint DEF LIFT Solid {
-            translation -9.140730443668588e-07 0.04001687288149683 -0.0425215511276919
+            translation -9.140730443668588e-07 0.0400263493468473 -0.0425215511276919
             rotation 0.9999999774866106 9.927636966969892e-05 -0.00018753927796403 5.3513290296673704e-05
             children [
               DEF LEFT_FINGER_SLIDER SliderJoint {
                 jointParameters JointParameters {
-                  position 8.580047836976429e-08
+                  position 1.5034313065525655e-06
                   axis -1 0 0
                 }
                 device [
@@ -5437,7 +5474,7 @@ DEF FetchGoodBot Robot {
                   }
                 ]
                 endPoint DEF LEFT_FINGER Solid {
-                  translation -0.0220000858004784 0 -0.02
+                  translation -0.022001503431306586 0 -0.02
                   children [
                     Group {
                       children [
@@ -5478,7 +5515,7 @@ DEF FetchGoodBot Robot {
               }
               DEF RIGHT_FINGER_SLIDER SliderJoint {
                 jointParameters JointParameters {
-                  position 8.791742792911964e-08
+                  position 9.127304019642396e-07
                   axis 1 0 0
                 }
                 device [
@@ -5490,7 +5527,7 @@ DEF FetchGoodBot Robot {
                   }
                 ]
                 endPoint DEF RIGHT_FINGER Solid {
-                  translation 0.022000087956488078 2.5460372490987426e-06 -0.020000008926034374
+                  translation 0.022000912769462113 2.5460372490987426e-06 -0.020000008926034374
                   rotation 0.9796257590612942 0.0005808194273917916 0.20083086125487795 1.2991258418468474e-07
                   children [
                     Group {
@@ -5788,7 +5825,7 @@ DEF FetchGoodBot Robot {
     }
     DEF wheel1 HingeJoint {
       jointParameters HingeJointParameters {
-        position 34.058199109213305
+        position 39.05016638365629
         axis 0 0 -1
         anchor 0.133 -0.015 0.16
       }
@@ -5803,7 +5840,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 0.16
-        rotation 0.177436937686146 -0.6958861780602786 0.6958868875968427 3.492811420720324
+        rotation -0.6616666134616683 0.5301870987704227 -0.5301876393575856 1.972525644428456
         children [
           Shape {
             appearance DEF Wheel_Outside_Color PBRAppearance {
@@ -5962,7 +5999,7 @@ DEF FetchGoodBot Robot {
     }
     DEF wheel2 HingeJoint {
       jointParameters HingeJointParameters {
-        position -332.0861330064314
+        position -335.9502406142026
         axis 0 0 -1
         anchor 0.133 -0.015 -0.16
       }
@@ -5977,7 +6014,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 -0.16
-        rotation 0.3358734298226322 -0.66576367684406 0.6662940535036006 3.7901433009107577
+        rotation 0.5440358975758922 0.5930701089594448 -0.5935425747220041 4.138766810197896
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6129,7 +6166,7 @@ DEF FetchGoodBot Robot {
     }
     DEF wheel3 HingeJoint {
       jointParameters HingeJointParameters {
-        position -295.9327538657174
+        position -299.79985464653174
         axis 0 0 -1
         anchor -0.133 -0.015 0.16
       }
@@ -6144,7 +6181,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 0.16
-        rotation 0.3444682669274187 -0.6635660393707029 0.6640946652954676 3.8055598281040126
+        rotation 0.5339791832356566 0.5976190110747568 -0.5980951006930344 4.123174586773267
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6296,7 +6333,7 @@ DEF FetchGoodBot Robot {
     }
     DEF wheel4 HingeJoint {
       jointParameters HingeJointParameters {
-        position -69.32617363847352
+        position -64.33420578984781
         axis 0 0 -1
         anchor -0.133 -0.015 -0.16
       }
@@ -6311,7 +6348,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 -0.16
-        rotation 0.4000445897558162 0.6478022229732159 -0.648318290747732 3.903231679152402
+        rotation 0.06535074302449452 -0.7053142400956876 0.7058761244753851 3.2722122312501254
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6473,69 +6510,8 @@ DEF FetchGoodBot Robot {
       0 0 0
     ]
   }
-  controller "ros"
+  controller "test_controller"
   controllerArgs [
     "--name=robot"
   ]
-}
-PlasticCrate {
-  translation 5.013470000000199 -0.00019627921719712893 1.5744600000001026
-  rotation 1.750745069271363e-06 0.9999999999947747 -2.7176379583764946e-06 0.0019540685031679272
-  size 0.6 0.2 0.45
-  mass 1
-}
-PlasticCrate {
-  translation 4.362928928774168 -0.0002648704201651808 1.5891770016200775
-  rotation 0.00734093868629855 -0.9998665292288244 -0.014595696184425862 0.0030079886019319744
-  name "plastic crate(1)"
-  size 0.6 0.2 0.45
-  mass 1
-}
-SolidBox {
-  translation 5.41943 2.50208 1.23275
-  rotation -0.5773502691896258 0.5773502691896258 -0.5773502691896258 2.094
-  name "box(1)"
-  size 0.02 2.5 1.2
-  appearance PBRAppearance {
-    baseColor 0 0 0
-    baseColorMap ImageTexture {
-      url [
-        "https://raw.githubusercontent.com/cyberbotics/webots/R2021b/projects/default/worlds/textures/tagged_wall.jpg"
-      ]
-    }
-    roughness 0.5
-    metalness 0
-  }
-}
-UR10e {
-  translation 5.32 0.11 1.02
-  rotation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
-  controller "my_ure_can_grasper"
-  selfCollision FALSE
-  toolSlot [
-    Robotiq3fGripper {
-    }
-    DistanceSensor {
-      translation 0 0.1 0
-      rotation 0 0 1 1.570796
-    }
-  ]
-}
-ConveyorBelt {
-  translation 4.26 0 -2.70115e-06
-  rotation 0 1 0 -5.307179586466759e-06
-  size 1.8 0.1 0.7
-  appearance CorrugatedMetal {
-    textureTransform TextureTransform {
-      scale 6 3.1
-    }
-  }
-  borderHeight 0
-  speed 0.2
-}
-SolidBox {
-  translation 4.715 0.055 0.9923
-  size 1.5 0.11 0.4
-  appearance GalvanizedMetal {
-  }
 }
