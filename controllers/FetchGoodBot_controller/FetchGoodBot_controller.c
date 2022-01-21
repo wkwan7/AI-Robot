@@ -168,6 +168,15 @@ int main(int argc, char **argv)
   while (true)
   {
     step();
+    // RecognizationInfo mp = my_get_recognization_info();
+    // int number_of_objects = mp.number_of_objects;
+    // myObject *objects = mp.objects;
+    // for (int i = 0; i < number_of_objects; i++)
+    // {
+    //   printf("num_of_obj: %d model: %s\n", number_of_objects, objects[i].model);
+    //   printf("size: %lf %lf\n", objects[i].size[0], objects[i].size[1]);
+    //   printf("position: %lf %lf %lf\n", objects[i].position[0], objects[i].position[1], objects[i].position[2]);
+    // }
     Robot_State_Machine(&main_state, &grasp_state);
     keyboard_control(wb_keyboard_get_key(), &main_state);
   }
@@ -522,17 +531,20 @@ bool Find_Full(char *good_name, int *item_grasped_id)
   int number_of_objects = mp.number_of_objects;
   myObject *objects = mp.objects;
 
+
   for (int i = 0; i < number_of_objects; ++i)
   {
-    if (objects[i].position[2] < -5)
-      continue;
+    // if (objects[i].position[2] < -5)
+    //   continue;
     if (strcmp(objects[i].model, good_name) == 0)
     {
       *item_grasped_id = objects[i].id;
-      RecognizationInfo mp = my_get_recognization_info();
-      int number_of_objects = mp.number_of_objects;
-      myObject *objects = mp.objects;
+      // RecognizationInfo mp = my_get_recognization_info();
+      // int number_of_objects = mp.number_of_objects;
+      // myObject *objects = mp.objects;
       printf("Item_Grasped_Id: %d %d\n", Item_Grasped_Id, *item_grasped_id);
+      printf("num_of_obj: %d model: %s\n", number_of_objects, objects[i].model);
+      printf("size: %lf %lf\n", objects[i].size[0], objects[i].size[1]);
       printf("position: %lf %lf %lf\n", objects[i].position[0], objects[i].position[1], objects[i].position[2]);
       int Shelfx = max(0, floor((objects[i].position[0] + 0.84) * 4.17 + 0.5)); //左右 平均间隔0.24（架子宽度0.25）右移后对应一个系数 四舍五入
       int Shelfy = (objects[i].position[1] < -0.2) ? 0 : 1;                     //上下层 -0.20  为上下分界

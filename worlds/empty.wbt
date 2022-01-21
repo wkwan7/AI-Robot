@@ -41,8 +41,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.5957762478862124 -0.765931731859744 -0.24165935650199802 5.30912635161604
-  position 5.759786785634252 6.014573651866005 5.722771354990262
+  orientation 0.9991610517904906 0.032710571053534955 0.024641654292524066 4.991128494565443
+  position -1.4968135624043453 6.6159172975126435 0.6712772038231694
 }
 TexturedBackground {
   texture "factory"
@@ -4090,9 +4090,6 @@ DEF LoadGoodBot Robot {
   translation -2.59312 0.0680529 -1.98884
   rotation 0.1133755944889252 0.9748234029995441 -0.19200340501843016 0.03201226483190221
   children [
-    Emitter {
-      channel 1
-    }
     Receiver {
     }
     Robot {
@@ -4117,17 +4114,16 @@ DEF LoadGoodBot Robot {
             }
           ]
           name "camera_front"
-          fieldOfView 1.8
+          fieldOfView 2
           width 256
-          height 128
+          height 256
           antiAliasing TRUE
           recognition Recognition {
+            maxRange 3
+            occlusion FALSE
             frameColor 0.929412 0.831373 0
             frameThickness 2
           }
-        }
-        Receiver {
-          channel 1
         }
         Emitter {
         }
@@ -5296,54 +5292,51 @@ DEF LoadGoodBot Robot {
       0 0 0
     ]
   }
-  controller "FetchGoodBot_controller"
+  controller "LoadGoodBot_controller"
   controllerArgs [
     "--name=robot"
   ]
 }
 DEF FetchGoodBot Robot {
-  translation 3.25 0.06 1
+  translation 3.34 0.06 0.97
   children [
-    Emitter {
-      channel 1
-    }
     Receiver {
+      channel 1
     }
     Robot {
       children [
         Camera {
-          translation 0.2 0.3 0
-          rotation 2.397439454201474e-09 -0.9999967723417943 0.002540729421580232 1.56826
+          translation 0.22 0.3 0
+          rotation -0.0025338194675707773 -0.9999967898715674 2.337909508737162e-06 1.57334
           children [
             Transform {
-              translation 0 0 0.015
+              translation 0 0.005 2.1684e-19
               rotation 1 0 0 1.57
               children [
                 Shape {
                   appearance ScrewThread {
                   }
-                  geometry Cylinder {
-                    height 0.03
-                    radius 0.02
+                  geometry Box {
+                    size 0.025 0.02 0.05
                   }
                 }
               ]
             }
           ]
           name "camera_front"
-          fieldOfView 1.8
+          fieldOfView 2
           width 256
-          height 128
+          height 256
           antiAliasing TRUE
           recognition Recognition {
-            frameColor 0.929412 0.831373 0
+            maxRange 3
+            occlusion FALSE
+            frameColor 0.17968 0.765625 0.7109
             frameThickness 2
           }
         }
-        Receiver {
-          channel 1
-        }
         Emitter {
+          channel 1
         }
       ]
       name "SubRobot"
@@ -5840,7 +5833,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 0.16
-        rotation -0.6616666134616683 0.5301870987704227 -0.5301876393575856 1.972525644428456
+        rotation -0.6616666134616673 0.5301870987704221 -0.5301876393575875 1.972525644428453
         children [
           Shape {
             appearance DEF Wheel_Outside_Color PBRAppearance {
@@ -6014,7 +6007,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 -0.16
-        rotation 0.5440358975758922 0.5930701089594448 -0.5935425747220041 4.138766810197896
+        rotation 0.5440358975758921 0.5930701089594446 -0.5935425747220044 4.138766810197895
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6181,7 +6174,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 0.16
-        rotation 0.5339791832356566 0.5976190110747568 -0.5980951006930344 4.123174586773267
+        rotation 0.5339791832356569 0.5976190110747567 -0.5980951006930343 4.123174586773267
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6348,7 +6341,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 -0.16
-        rotation 0.06535074302449452 -0.7053142400956876 0.7058761244753851 3.2722122312501254
+        rotation 0.06535074302449467 -0.7053142400956872 0.7058761244753853 3.2722122312501254
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6510,7 +6503,7 @@ DEF FetchGoodBot Robot {
       0 0 0
     ]
   }
-  controller "test_controller"
+  controller "FetchGoodBot_controller"
   controllerArgs [
     "--name=robot"
   ]
