@@ -103,7 +103,7 @@ int name2index(char *name);
 char *index2name(int index);
 
 bool Find_Full(WbDeviceTag camera, char *good_name, int *item_grasped_id);
-bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id);
+// bool Find_Goods(WbDeviceTag camera, char *good_name, int *item_grasped_id);
 bool Aim_and_Grasp(int *grasp_state, WbDeviceTag camera, int objectID);
 bool Moveto_CertainPoint(double fin_posture[], double reach_precision);
 void Robot_State_Machine(enum RobotState *main_state, int *grasp_state);

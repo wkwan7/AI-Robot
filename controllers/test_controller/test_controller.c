@@ -201,14 +201,14 @@ void init_all()
   base_init();
   passive_wait(0.0);
 
-  camera[0] = wb_robot_get_device("camera_top"); //相机初始化
-  camera[1] = wb_robot_get_device("camera_front");
+  // camera[0] = wb_robot_get_device("camera_top"); //相机初始化
+  // camera[1] = wb_robot_get_device("camera_front");
   receiver = wb_robot_get_device("receiver");
   wb_receiver_enable(receiver, 10);
-  wb_camera_enable(camera[0], TIME_STEP);
-  wb_camera_recognition_enable(camera[0], TIME_STEP);
-  wb_camera_enable(camera[1], TIME_STEP);
-  wb_camera_recognition_enable(camera[1], TIME_STEP);
+  // wb_camera_enable(camera[0], TIME_STEP);
+  // wb_camera_recognition_enable(camera[0], TIME_STEP);
+  // wb_camera_enable(camera[1], TIME_STEP);
+  // wb_camera_recognition_enable(camera[1], TIME_STEP);
 
   // GPS初始化
   gps = wb_robot_get_device("gps");
@@ -571,7 +571,7 @@ bool Find_Empty(WbDeviceTag camera)
     if (objects[i].position[2] < -3)
       continue;
     int Shelfx = max(0, floor((objects[i].position[0] + 0.84) * 4.17 + 0.5)); //左右 平均间隔0.24（架子宽度0.25）右移后对应一个系数 四舍五入
-    int Shelfy = (objects[i].position[1] < -0.1) ? 0 : 1;                     //上下层 -0.20  为上下分界
+    int Shelfy = (objects[i].position[1] < 0) ? 0 : 1;                     //上下层 -0.20  为上下分界
 
     GoodsonShelf[CurrentShelf][Shelfy * 8 + Shelfx] = name2index(objects[i].model);
     printf("物体 %s 对应编号 %d 写入[%d] 写入编号为%d\n", objects[i].model, name2index(objects[i].model), Shelfy * 8 + Shelfx, GoodsonShelf[CurrentShelf][Shelfy * 8 + Shelfx]);
