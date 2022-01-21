@@ -42,7 +42,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation 0.9991610517904906 0.032710571053534955 0.024641654292524066 4.991128494565443
-  position -1.4968135624043453 6.6159172975126435 0.6712772038231694
+  position 1.5474596033232644 6.691166300643835 1.3349314679021382
 }
 TexturedBackground {
   texture "factory"
@@ -5833,7 +5833,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 0.16
-        rotation -0.6616666134616673 0.5301870987704221 -0.5301876393575875 1.972525644428453
+        rotation -0.6616666134616671 0.5301870987704219 -0.530187639357588 1.9725256444284518
         children [
           Shape {
             appearance DEF Wheel_Outside_Color PBRAppearance {
@@ -6007,7 +6007,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation 0.133 -0.015 -0.16
-        rotation 0.5440358975758921 0.5930701089594446 -0.5935425747220044 4.138766810197895
+        rotation 0.544035897575892 0.5930701089594446 -0.5935425747220042 4.138766810197895
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6174,7 +6174,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 0.16
-        rotation 0.5339791832356569 0.5976190110747567 -0.5980951006930343 4.123174586773267
+        rotation 0.533979183235657 0.5976190110747569 -0.598095100693034 4.123174586773267
         children [
           Shape {
             appearance USE Wheel_Outside_Color
@@ -6341,7 +6341,7 @@ DEF FetchGoodBot Robot {
       ]
       endPoint DEF WHEEL_SOLID Solid {
         translation -0.133 -0.015 -0.16
-        rotation 0.06535074302449467 -0.7053142400956872 0.7058761244753853 3.2722122312501254
+        rotation 0.0653507430244947 -0.7053142400956874 0.7058761244753852 3.2722122312501254
         children [
           Shape {
             appearance USE Wheel_Outside_Color
