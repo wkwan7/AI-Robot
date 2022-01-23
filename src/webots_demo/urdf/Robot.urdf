@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<robot name="/home/lqw/catkin_ws/src/webots_demo/urdf/Robot.urdf" xmlns:xacro="http://ros.org/wiki/xacro">
+  <link name="base_link">
+  </link>
+  <joint name="wheel4" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel4_506"/>
+    <axis xyz="-1.2212453e-15 0.9999997 -0.0007963267"/>
+    <limit effort="10" velocity="14.81"/>
+    <origin xyz="-0.133 -0.015 -0.16" rpy="-1.57 -1.2212453e-15 2.0351572"/>
+  </joint>
+  <link name="wheel4_506">
+  </link>
+  <joint name="wheel3" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel3_465"/>
+    <axis xyz="-4.9960036e-16 0.9999997 -0.0007963267"/>
+    <limit effort="10" velocity="14.81"/>
+    <origin xyz="-0.133 -0.015 0.16" rpy="-1.57 -4.9960036e-16 -2.183945"/>
+  </joint>
+  <link name="wheel3_465">
+  </link>
+  <joint name="wheel2" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel2_424"/>
+    <axis xyz="6.1062266e-16 0.9999997 -0.0007963267"/>
+    <limit effort="10" velocity="14.81"/>
+    <origin xyz="0.133 -0.015 -0.16" rpy="-1.57 6.1062266e-16 -2.207121"/>
+  </joint>
+  <link name="wheel2_424">
+  </link>
+  <joint name="wheel1" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel1_383"/>
+    <axis xyz="2.4980018e-16 1 -1.0196153e-06"/>
+    <limit effort="10" velocity="14.81"/>
+    <origin xyz="0.133 -0.015 0.16" rpy="-1.5707953 2.4980018e-16 -2.6422725"/>
+  </joint>
+  <link name="wheel1_383">
+  </link>
+  <link name="Pioneer3 gripper">
+    <visual>
+      <origin xyz="0 -0.22 -0.019" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.141 0.55 0.043"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.22 -0.019" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.141 0.55 0.043"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="base_link_Pioneer3 gripper_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="Pioneer3 gripper"/>
+    <origin xyz="0.15 0.08 0" rpy="-1.5707954 1.5707945 1.5707954"/>
+  </joint>
+  <joint name="lift motor" type="prismatic">
+    <parent link="Pioneer3 gripper"/>
+    <child link="solid"/>
+    <axis xyz="1.0035702e-08 -1 5.351329e-05"/>
+    <origin xyz="-9.1407304e-07 0.040016875 -0.04252155" rpy="5.351329e-05 5.3128737e-09 -1.0035702e-08"/>
+    <limit effort="2000" lower="-0.05" upper="0.5" velocity="10"/>
+  </joint>
+  <link name="solid">
+    <visual>
+      <origin xyz="0 0.0015 -0.019" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.315 0.05 0.045"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0.0015 -0.019" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.315 0.05 0.045"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="right finger motor" type="prismatic">
+    <parent link="solid"/>
+    <child link="right finger"/>
+    <axis xyz="1 -2.6090456e-08 7.545741e-11"/>
+    <origin xyz="0.022000087 2.5460372e-06 -0.020000009" rpy="1.2726571e-07 7.5454094e-11 2.6090456e-08"/>
+    <limit effort="100" lower="-6.54522e-12" upper="0.1" velocity="10"/>
+  </joint>
+  <link name="right finger">
+    <visual>
+      <origin xyz="-0.0015 0.003 -0.099" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.015 0.035 0.155"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.0015 0.003 -0.099" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.015 0.035 0.155"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="left finger motor" type="prismatic">
+    <parent link="solid"/>
+    <child link="left finger"/>
+    <axis xyz="-1 0 0"/>
+    <origin xyz="-0.022000086 0 -0.02" rpy="0 0 0"/>
+    <limit effort="100" lower="0" upper="0.1" velocity="10"/>
+  </joint>
+  <link name="left finger">
+    <visual>
+      <origin xyz="0.0015 0.003 -0.099" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.015 0.035 0.155"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0015 0.003 -0.099" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.015 0.035 0.155"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="camera_front">
+  </link>
+  <joint name="base_link_camera_front_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_front"/>
+    <origin xyz="0.189449 0.12 0" rpy="-0.7837263 -1.5672063 0.78626376"/>
+  </joint>
+  <link name="camera_top">
+  </link>
+  <joint name="base_link_camera_top_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_top"/>
+    <origin xyz="0.22 0.3 0" rpy="-2.357674 -1.5672044 2.3551393"/>
+  </joint>
+  <link name="Sick LMS 291">
+  </link>
+  <joint name="base_link_Sick LMS 291_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="Sick LMS 291"/>
+    <origin xyz="0 0.2 0" rpy="0 0 0"/>
+  </joint>
+</robot>

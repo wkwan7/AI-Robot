@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot name="/home/lqw/Documents/Robot.urdf" xmlns:xacro="http://ros.org/wiki/xacro">
+  <link name="base_link">
+  </link>
+<!--
+  <link name="Sick LMS 291">
+  </link>
+  <joint name="base_link_Sick LMS 291_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="Sick LMS 291"/>
+    <origin xyz="0 0.33 0.18 " rpy="0 0 -1.5707953 "/>
+  </joint> -->
+</robot>

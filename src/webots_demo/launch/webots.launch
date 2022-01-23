@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 启动webots -->
+  <include file="$(find webots_ros)/launch/webots.launch">
+    <arg name="mode" value="realtime"/>
+    <arg name="world" value="$(find webots_demo)/worlds/empty.wbt"/>
+  </include>
+</launch>

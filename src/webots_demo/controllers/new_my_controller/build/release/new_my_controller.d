@@ -1,0 +1,15 @@
+build/release/new_my_controller.o: new_my_controller.c \
+ C:\Program\ Files\Webots/projects/robots/kuka/youbot/libraries/youbot_control/include/base.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/types.h \
+ C:\Program\ Files\Webots/projects/robots/kuka/youbot/libraries/youbot_control/include/gripper.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/keyboard.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/types.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/robot.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/nodes.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/motor.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/touch_sensor.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/camera.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/camera_recognition_object.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/camera_recognition_object.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/gps.h \
+ C:\Program\ Files\Webots/include/controller/c/webots/compass.h
